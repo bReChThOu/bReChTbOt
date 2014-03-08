@@ -75,6 +75,7 @@ namespace bReChTbOt.Core
                 case "pick_starting_regions":
                     String[] regions = commandargs.Skip(2).ToArray();
                     MapFactory.GetInstance().MarkStartingRegions(regions);
+                    MapFactory.GetInstance().PickFavoriteStartingRegions();
                     break;
                 case "update_map":
                     for (int i = 2; i < commandargs.Length; i++)

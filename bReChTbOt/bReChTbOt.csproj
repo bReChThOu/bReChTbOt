@@ -48,6 +48,7 @@
     <Compile Include="Config\PlayerType.cs" />
     <Compile Include="Core\Bot.cs" />
     <Compile Include="Core\CommandParser.cs" />
+    <Compile Include="Core\OutputCommandType.cs" />
     <Compile Include="Map\MapFactory.cs" />
     <Compile Include="Map\Region.cs" />
     <Compile Include="Map\RegionStatus.cs" />

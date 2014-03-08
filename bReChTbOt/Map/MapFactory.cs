@@ -67,9 +67,14 @@ namespace bReChTbOt.Map
                         Regions
                             .Where(region => region.ID == Int32.Parse(r))
                             .FirstOrDefault()
-                            .RegionStatus = RegionStatus.Starting;
+                            .RegionStatus = RegionStatus.PossibleStartingRegion;
                     }
                 );
+        }
+
+        public IEnumerable<Region> PickFavoriteStartingRegions()
+        {
+            return Regions.Where(region => region.RegionStatus == RegionStatus.PossibleStartingRegion).Take(6);
         }
 
         public void UpdateRegion(int regionid, String playername, int nbrOfArmies)

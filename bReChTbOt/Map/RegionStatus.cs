@@ -8,6 +8,6 @@ namespace bReChTbOt.Map
     public enum RegionStatus
     {
         Initialized = 1,
-        Starting
+        PossibleStartingRegion
     }
 }
