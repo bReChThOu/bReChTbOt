@@ -1,4 +1,5 @@
-﻿using System;
+﻿using bReChTbOt.Config;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -69,6 +70,14 @@ namespace bReChTbOt.Map
                             .RegionStatus = RegionStatus.Starting;
                     }
                 );
+        }
+
+        public void UpdateRegion(int regionid, String playername, int nbrOfArmies)
+        {
+            Regions
+                .Where(region => region.ID == regionid)
+                .FirstOrDefault()
+                .Update(ConfigFactory.GetInstance().GetPlayerByName(playername) , nbrOfArmies);
         }
     }
 }

@@ -9,13 +9,13 @@ namespace bReChTbOt.Config
     {
         private static ConfigFactory instance;
 
-        private BotSettings MyBot { get; set; }
-        private BotSettings OpponentBot { get; set; }
+        private List<Player> Players { get; set; }
+        private GameSettings GameSettings { get; set; }
 
         private ConfigFactory()
         {
-            MyBot = new BotSettings();
-            OpponentBot = new BotSettings();
+            Players = new List<Player>();
+            Players.Add(new Player() { PlayerType = PlayerType.Neutral, Name = "Neutral" });
         }
 
         public static ConfigFactory GetInstance()
@@ -27,14 +27,24 @@ namespace bReChTbOt.Config
             return instance;
         }
 
+        public Player GetPlayerByName(String name)
+        {
+            return Players.Where(player => player.Name == name).FirstOrDefault();
+        }
+
         public void SetMyBotName(String botname)
         {
-            MyBot.Name = botname;
+            Players.Add(new Player() { PlayerType = PlayerType.Me, Name = botname });
         }
 
         public void SetOpponentBotName(String botname)
         {
-            OpponentBot.Name = botname;
+            Players.Add(new Player() { PlayerType = PlayerType.Opponent, Name = botname });
+        }
+
+        public void SetStartingArmies(int startingarmies)
+        {
+            GameSettings.StartingArmies = startingarmies;
         }
     }
 }

@@ -42,8 +42,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Config\BotSettings.cs" />
+    <Compile Include="Config\Player.cs" />
     <Compile Include="Config\ConfigFactory.cs" />
+    <Compile Include="Config\GameSettings.cs" />
+    <Compile Include="Config\PlayerType.cs" />
     <Compile Include="Core\Bot.cs" />
     <Compile Include="Core\CommandParser.cs" />
     <Compile Include="Map\MapFactory.cs" />

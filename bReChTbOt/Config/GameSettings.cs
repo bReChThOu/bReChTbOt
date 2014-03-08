@@ -5,8 +5,8 @@ using System.Text;
 
 namespace bReChTbOt.Config
 {
-    public class BotSettings
+    public class GameSettings
     {
-        public String Name { get; set; }
+        public int StartingArmies { get; set; }
     }
 }

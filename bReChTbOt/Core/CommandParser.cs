@@ -35,6 +35,10 @@ namespace bReChTbOt.Core
                             String opponentbotname = commandargs[2];
                             ConfigFactory.GetInstance().SetOpponentBotName(opponentbotname);
                             break;
+                        case "starting_armies":
+                            int armies = Int32.Parse(commandargs[2]);
+                            ConfigFactory.GetInstance().SetStartingArmies(armies);
+                            break;
                     }
                     break;
                 case "setup_map":
@@ -72,6 +76,17 @@ namespace bReChTbOt.Core
                     String[] regions = commandargs.Skip(2).ToArray();
                     MapFactory.GetInstance().MarkStartingRegions(regions);
                     break;
+                case "update_map":
+                    for (int i = 2; i < commandargs.Length; i++)
+                    {
+                        int regionid = Int32.Parse(commandargs[i]);
+                        string player = commandargs[++i];
+                        int nbrOfArmies = Int32.Parse(commandargs[++i]);
+
+
+                    }
+                    break;
+
                 default:
                     break;
             }
