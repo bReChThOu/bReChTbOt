@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using bReChTbOt.Config;
+﻿using bReChTbOt.Config;
 using bReChTbOt.Map;
+using System;
+using System.Linq;
 
 namespace bReChTbOt.Core
 {
