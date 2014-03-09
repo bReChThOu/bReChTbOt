@@ -9,9 +9,8 @@ namespace bReChTbOt.Core
     {
         public static void OutputStartingRegions(IEnumerable<Region> regions)
         {
-            Ouput(String.Join(" ", regions.Select(region => region.ID).ToArray()));
+            Ouput(String.Join(" ", regions.Select(region => region.ID.ToString()).ToArray())); //.ToString() needed for mono compliance
         }
-
 
         public static void Ouput(String line)
         {

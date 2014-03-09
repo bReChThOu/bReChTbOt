@@ -81,8 +81,7 @@ namespace bReChTbOt.Core
                         int regionid = Int32.Parse(commandargs[i]);
                         string player = commandargs[++i];
                         int nbrOfArmies = Int32.Parse(commandargs[++i]);
-
-
+                        MapFactory.GetInstance().UpdateRegion(regionid, player, nbrOfArmies);
                     }
                     break;
 
