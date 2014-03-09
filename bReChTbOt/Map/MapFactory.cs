@@ -1,6 +1,7 @@
 ﻿using bReChTbOt.Config;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace bReChTbOt.Map
@@ -18,6 +19,7 @@ namespace bReChTbOt.Map
             Regions = new List<Region>();
         }
 
+        [DebuggerStepThrough]
         public static MapFactory GetInstance()
         {
             if (instance == null)
@@ -56,7 +58,40 @@ namespace bReChTbOt.Map
                 .Neighbours = neighborregions;
         }
 
-        public SuperRegion GetSuperRegion(Region region)
+        public void CalculateSuperRegionsBorders()
+        {
+            SuperRegions.ForEach((superregion) => { CalculateSuperRegionBorders(superregion); });
+        }
+        private void CalculateSuperRegionBorders(SuperRegion superregion)
+        {
+            //Calculate invasion paths and border territories for each Super Region
+            int invasionPaths = superregion
+                .ChildRegions
+                .Select(region => region.Neighbours)
+                .Select(
+                    neighbors => 
+                        neighbors
+                            .Where(neighbor => GetSuperRegionForRegion(neighbor).ID != superregion.ID)
+                            .Count())
+                .Count();
+            int borderTerritories = superregion
+                .ChildRegions
+                .Select(region => region.Neighbours)
+                .Select(
+                    neighbors =>
+                        neighbors
+                            .Where(neighbor => GetSuperRegionForRegion(neighbor).ID != superregion.ID)
+                            .Any())
+                .Count();
+            superregion.InvasionPaths = invasionPaths;
+            superregion.BorderTerritories = borderTerritories;
+            if (superregion.ID == 5)
+            {
+                Console.WriteLine("IP: {0}   BT: {1} ", invasionPaths, borderTerritories);
+            }
+        }
+
+        public SuperRegion GetSuperRegionForRegion(Region region)
         {
             return SuperRegions
                 .Where(superregion => superregion.ChildRegions.Contains(region))
@@ -93,8 +128,21 @@ namespace bReChTbOt.Map
              * */
             return Regions
                 .Where(region => region.RegionStatus == RegionStatus.PossibleStartingRegion)
-                .OrderByDescending(region => GetSuperRegion(region).Priority)
+                .OrderByDescending(region => GetSuperRegionForRegion(region).Priority)
                 .Take(6);
+        }
+
+        public void ClearRegions()
+        {
+            Regions
+                .ToList()
+                .ForEach(
+                    (region) =>
+                    {
+                        region.Player = null;
+                        region.NbrOfArmies = 0;
+                    }
+                );
         }
 
         public void UpdateRegion(int regionid, String playername, int nbrOfArmies)
@@ -103,6 +151,21 @@ namespace bReChTbOt.Map
                 .Where(region => region.ID == regionid)
                 .FirstOrDefault()
                 .Update(ConfigFactory.GetInstance().GetPlayerByName(playername) , nbrOfArmies);
+        }
+
+        public void PlaceArmies()
+        {
+            /*
+             * Fase 1: Try to find the continents with the least regions and populate them with armies
+             * 
+             * */
+          /*  return Regions
+                .Where(region => region.RegionStatus == RegionStatus.PossibleStartingRegion)
+                .OrderByDescending(region => GetSuperRegionForRegion(region).Priority)
+                .OrderByDescending(region => region.Neighbours.Count)
+
+
+            ConfigFactory.GetInstance().StartingArmies*/
         }
     }
 }

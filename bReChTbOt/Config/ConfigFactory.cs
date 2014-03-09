@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace bReChTbOt.Config
@@ -11,12 +12,15 @@ namespace bReChTbOt.Config
         private List<Player> Players { get; set; }
         private GameSettings GameSettings { get; set; }
 
+
         private ConfigFactory()
         {
             Players = new List<Player>();
             Players.Add(new Player() { PlayerType = PlayerType.Neutral, Name = "Neutral" });
+            GameSettings = new GameSettings();
         }
 
+        [DebuggerStepThrough]
         public static ConfigFactory GetInstance()
         {
             if (instance == null)
@@ -41,9 +45,15 @@ namespace bReChTbOt.Config
             Players.Add(new Player() { PlayerType = PlayerType.Opponent, Name = botname });
         }
 
-        public void SetStartingArmies(int startingarmies)
+        public void SetStartingArmies(int startingArmies)
         {
-            GameSettings.StartingArmies = startingarmies;
+            GameSettings.StartingArmies = startingArmies;
         }
+
+        public int GetStartingArmies()
+        {
+            return GameSettings.StartingArmies;
+        }
+
     }
 }

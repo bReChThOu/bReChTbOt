@@ -21,10 +21,13 @@ namespace bReChTbOt.Core
                  * 2) Replace all whitespaces with a regular space
                  * */
                 String line = Console.ReadLine().Trim();
-                Regex.Replace(line, "\\s+", " "); 
+                if (!String.IsNullOrEmpty(line))
+                {
+                    Regex.Replace(line, "\\s+", " ");
 
-                //Let the parser deal with it
-                parser.Parse(line);
+                    //Let the parser deal with it
+                    parser.Parse(line);
+                }
             }
         }
     }

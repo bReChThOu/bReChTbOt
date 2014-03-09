@@ -7,6 +7,9 @@ namespace bReChTbOt.Map
         public int ID { get; set; }
         public int Reward { get; set; }
 
+        public int InvasionPaths { get; set; }
+        public int BorderTerritories { get; set; }
+
         public List<Region> ChildRegions { get; internal set;}
 
         public int Priority { get; internal set; }
