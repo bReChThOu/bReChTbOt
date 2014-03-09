@@ -67,13 +67,13 @@ namespace bReChTbOt.Map
             //Calculate invasion paths and border territories for each Super Region
             int invasionPaths = superregion
                 .ChildRegions
-                .Select(region => region.Neighbours)
-                .Select(
-                    neighbors => 
-                        neighbors
-                            .Where(neighbor => GetSuperRegionForRegion(neighbor).ID != superregion.ID)
-                            .Count())
+                .Where(region => region
+                                    .Neighbours
+                                    .Any(neighbor => GetSuperRegionForRegion(neighbor).ID != superregion.ID))
                 .Count();
+
+
+               
             int borderTerritories = superregion
                 .ChildRegions
                 .Select(region => region.Neighbours)
