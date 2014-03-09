@@ -57,6 +57,13 @@ namespace bReChTbOt.Map
                 .Neighbours = neighborregions;
         }
 
+        public SuperRegion GetSuperRegion(Region region)
+        {
+            return SuperRegions
+                .Where(superregion => superregion.ChildRegions.Contains(region))
+                .FirstOrDefault();
+        }
+
         public void MarkStartingRegions(String[] regions)
         {
             regions
@@ -74,7 +81,21 @@ namespace bReChTbOt.Map
 
         public IEnumerable<Region> PickFavoriteStartingRegions()
         {
-            return Regions.Where(region => region.RegionStatus == RegionStatus.PossibleStartingRegion).Take(6);
+            /*
+             * One key to victory is control over continents.
+             * Players that hold continents at the beginning of a turn get bonus reinforcements 
+             * in an amount roughly proportional to the size of the continent 
+             * 
+             * Thus, the key positions on the board are the territories on the borders of continents. 
+             * 
+             * 
+             * Fase 1: Try to find the continents with the least regions
+             * 
+             * */
+            return Regions
+                .Where(region => region.RegionStatus == RegionStatus.PossibleStartingRegion)
+                .OrderByDescending(region => GetSuperRegion(region).Priority)
+                .Take(6);
         }
 
         public void UpdateRegion(int regionid, String playername, int nbrOfArmies)

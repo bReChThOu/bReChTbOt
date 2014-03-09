@@ -10,7 +10,9 @@ namespace bReChTbOt.Map
         public int ID { get; set; }
         public int Reward { get; set; }
 
-        private List<Region> ChildRegions;
+        public List<Region> ChildRegions { get; internal set;}
+
+        public int Priority { get; internal set; }
 
         public SuperRegion()
         {
@@ -20,6 +22,9 @@ namespace bReChTbOt.Map
         public void AddChildRegion(Region region)
         {
             ChildRegions.Add(region);
+            Priority = (int) 1000 / ChildRegions.Count;
         }
+
+        
     }
 }
