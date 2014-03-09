@@ -42,9 +42,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Config\Player.cs" />
     <Compile Include="Config\ConfigFactory.cs" />
     <Compile Include="Config\GameSettings.cs" />
+    <Compile Include="Config\Player.cs" />
     <Compile Include="Config\PlayerType.cs" />
     <Compile Include="Core\Bot.cs" />
     <Compile Include="Core\CommandBuilder.cs" />
