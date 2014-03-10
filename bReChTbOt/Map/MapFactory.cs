@@ -56,6 +56,20 @@ namespace bReChTbOt.Map
                 .Where(region => region.ID == id)
                 .FirstOrDefault()
                 .Neighbours = neighborregions;
+
+			/* 
+			 * Neighbors are only given once.
+			 * E.g.: A has neighbour B, but the game won't tell us B has neighbour A.
+			 * 
+			 * We have to define that relation explicitly
+			 * */
+			neighborregions.ForEach(
+				(neighbor) =>
+				{
+					neighbor.Neighbours.Add(Regions.Where(region => region.ID == id).FirstOrDefault());
+				}
+			);
+
         }
 
         public void CalculateSuperRegionsBorders()
