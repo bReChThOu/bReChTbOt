@@ -1,4 +1,9 @@
-﻿using bReChTbOt.Config;
+﻿// <copyright file="MapFactory.cs">
+//		Copyright (c) 2013 All Rights Reserved
+// </copyright>
+// <author>Brecht Houben</author>
+// <date>10/03/2014</date>
+using bReChTbOt.Config;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,19 +11,45 @@ using System.Linq;
 
 namespace bReChTbOt.Map
 {
+	/// <summary>
+	/// Map Factory class
+	/// </summary>
     public class MapFactory
     {
+		/// <summary>
+		/// The instance
+		/// </summary>
         private static MapFactory instance;
 
+		/// <summary>
+		/// Gets or sets the super regions.
+		/// </summary>
+		/// <value>
+		/// The super regions.
+		/// </value>
         private List<SuperRegion> SuperRegions { get; set; }
+
+		/// <summary>
+		/// Gets or sets the regions.
+		/// </summary>
+		/// <value>
+		/// The regions.
+		/// </value>
         private List<Region> Regions { get; set; }
 
+		/// <summary>
+		/// Prevents a default instance of the <see cref="MapFactory"/> class from being created.
+		/// </summary>
         private MapFactory()
         {
             SuperRegions = new List<SuperRegion>();
             Regions = new List<Region>();
         }
 
+		/// <summary>
+		/// Gets the instance.
+		/// </summary>
+		/// <returns></returns>
         [DebuggerStepThrough]
         public static MapFactory GetInstance()
         {
@@ -29,11 +60,21 @@ namespace bReChTbOt.Map
             return instance;
         }
 
+		/// <summary>
+		/// Adds the super region.
+		/// </summary>
+		/// <param name="id">The identifier.</param>
+		/// <param name="reward">The reward.</param>
         public void AddSuperRegion(int id, int reward)
         {
             SuperRegions.Add(new SuperRegion() { ID = id, Reward = reward });
         }
 
+		/// <summary>
+		/// Adds the region.
+		/// </summary>
+		/// <param name="id">The identifier.</param>
+		/// <param name="superRegionId">The super region identifier.</param>
         public void AddRegion(int id, int superRegionId)
         {
             Region region = new Region() { ID = id };
@@ -45,6 +86,11 @@ namespace bReChTbOt.Map
                 .AddChildRegion(region);
         }
 
+		/// <summary>
+		/// Sets the region neighbors.
+		/// </summary>
+		/// <param name="id">The identifier.</param>
+		/// <param name="neighbors">The neighbors.</param>
         public void SetRegionNeighbors(int id, String[] neighbors)
         {
             List<Region> neighborregions = 
@@ -55,7 +101,7 @@ namespace bReChTbOt.Map
             Regions
                 .Where(region => region.ID == id)
                 .FirstOrDefault()
-                .Neighbours = neighborregions;
+                .Neighbours.AddRange(neighborregions);
 
 			/* 
 			 * Neighbors are only given once.
@@ -72,39 +118,42 @@ namespace bReChTbOt.Map
 
         }
 
+		/// <summary>
+		/// Calculates the super regions borders.
+		/// </summary>
         public void CalculateSuperRegionsBorders()
         {
             SuperRegions.ForEach((superregion) => { CalculateSuperRegionBorders(superregion); });
         }
+		/// <summary>
+		/// Calculates the super region borders.
+		/// </summary>
+		/// <param name="superregion">The superregion.</param>
         private void CalculateSuperRegionBorders(SuperRegion superregion)
         {
             //Calculate invasion paths and border territories for each Super Region
-            int invasionPaths = superregion
-                .ChildRegions
-                .Where(region => region
-                                    .Neighbours
-                                    .Any(neighbor => GetSuperRegionForRegion(neighbor).ID != superregion.ID))
-                .Count();
+			var invasionPaths = superregion
+				.ChildRegions
+				.SelectMany(region => region
+									.Neighbours
+									.Where(neighbor => GetSuperRegionForRegion(neighbor).ID != superregion.ID));
 
 
-               
-            int borderTerritories = superregion
-                .ChildRegions
-                .Select(region => region.Neighbours)
-                .Select(
-                    neighbors =>
-                        neighbors
-                            .Where(neighbor => GetSuperRegionForRegion(neighbor).ID != superregion.ID)
-                            .Any())
-                .Count();
+			var borderTerritories = superregion
+			   .ChildRegions
+				.Where(region => region
+									.Neighbours
+									.Any(neighbor => GetSuperRegionForRegion(neighbor).ID != superregion.ID));
+
             superregion.InvasionPaths = invasionPaths;
             superregion.BorderTerritories = borderTerritories;
-            if (superregion.ID == 5)
-            {
-                Console.WriteLine("IP: {0}   BT: {1} ", invasionPaths, borderTerritories);
-            }
         }
 
+		/// <summary>
+		/// Gets the super region for the region.
+		/// </summary>
+		/// <param name="region">The region.</param>
+		/// <returns></returns>
         public SuperRegion GetSuperRegionForRegion(Region region)
         {
             return SuperRegions
@@ -112,6 +161,10 @@ namespace bReChTbOt.Map
                 .FirstOrDefault();
         }
 
+		/// <summary>
+		/// Marks the starting regions.
+		/// </summary>
+		/// <param name="regions">The regions.</param>
         public void MarkStartingRegions(String[] regions)
         {
             regions
@@ -127,6 +180,10 @@ namespace bReChTbOt.Map
                 );
         }
 
+		/// <summary>
+		/// Picks the favorite starting regions.
+		/// </summary>
+		/// <returns></returns>
         public IEnumerable<Region> PickFavoriteStartingRegions()
         {
             /*
@@ -146,6 +203,9 @@ namespace bReChTbOt.Map
                 .Take(6);
         }
 
+		/// <summary>
+		/// Clears the regions.
+		/// </summary>
         public void ClearRegions()
         {
             Regions
@@ -159,6 +219,12 @@ namespace bReChTbOt.Map
                 );
         }
 
+		/// <summary>
+		/// Updates the region.
+		/// </summary>
+		/// <param name="regionid">The regionid.</param>
+		/// <param name="playername">The playername.</param>
+		/// <param name="nbrOfArmies">The number of armies.</param>
         public void UpdateRegion(int regionid, String playername, int nbrOfArmies)
         {
             Regions
@@ -167,6 +233,9 @@ namespace bReChTbOt.Map
                 .Update(ConfigFactory.GetInstance().GetPlayerByName(playername) , nbrOfArmies);
         }
 
+		/// <summary>
+		/// Places the armies.
+		/// </summary>
         public void PlaceArmies()
         {
             /*

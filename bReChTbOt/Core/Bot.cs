@@ -1,17 +1,32 @@
-﻿using System;
+﻿// <copyright file="Bot.cs">
+//		Copyright (c) 2013 All Rights Reserved
+// </copyright>
+// <author>Brecht Houben</author>
+// <date>10/03/2014</date>
+using System;
 using System.Text.RegularExpressions;
 
 namespace bReChTbOt.Core
 {
+
     public class Bot
     {
+		/// <summary>
+		/// The parser
+		/// </summary>
         private CommandParser parser;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Bot"/> class.
+		/// </summary>
         public Bot()
         {
             parser = new CommandParser();
         }
 
+		/// <summary>
+		/// Runs this instance.
+		/// </summary>
         public void Run()
         {
             while (true)
