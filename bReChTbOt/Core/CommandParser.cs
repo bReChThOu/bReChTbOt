@@ -53,7 +53,7 @@ namespace bReChTbOt.Core
                             switch(subcommand)
                             {
                                 case "place_armies":
-                                    MapFactory.GetInstance().PlaceArmies();
+									CommandBuilder.OutputArmyPlacements(MapFactory.GetInstance().PlaceArmies());
                                     break;
                             }
                             break;

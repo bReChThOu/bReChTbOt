@@ -77,6 +77,11 @@ namespace bReChTbOt.Config
             Players.Add(new Player() { PlayerType = PlayerType.Me, Name = botname });
         }
 
+		public String GetMyBotName()
+		{
+			return Players.Where(player => player.PlayerType == PlayerType.Me).FirstOrDefault().Name;
+		}
+
 		/// <summary>
 		/// Sets the name of the opponent bot.
 		/// </summary>

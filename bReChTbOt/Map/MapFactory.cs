@@ -213,7 +213,7 @@ namespace bReChTbOt.Map
                 .ForEach(
                     (region) =>
                     {
-                        region.Player = null;
+                        region.Player = new Player() { PlayerType = Config.PlayerType.Unknown };
                         region.NbrOfArmies = 0;
                     }
                 );
@@ -236,19 +236,25 @@ namespace bReChTbOt.Map
 		/// <summary>
 		/// Places the armies.
 		/// </summary>
-        public void PlaceArmies()
+        public IEnumerable<ArmyPlacement> PlaceArmies()
         {
             /*
              * Fase 1: Try to find the continents with the least regions and populate them with armies
              * 
              * */
-          /*  return Regions
-                .Where(region => region.RegionStatus == RegionStatus.PossibleStartingRegion)
+            var primaryRegion = Regions
+                .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
                 .OrderByDescending(region => GetSuperRegionForRegion(region).Priority)
                 .OrderByDescending(region => region.Neighbours.Count)
+				.FirstOrDefault();
 
+			var armyplacement = new ArmyPlacement() { Armies = ConfigFactory.GetInstance().GetStartingArmies(), Region = primaryRegion };
 
-            ConfigFactory.GetInstance().StartingArmies*/
+			List<ArmyPlacement> placements = new List<ArmyPlacement>();
+
+			placements.Add(armyplacement);
+
+			return placements;
         }
     }
 }

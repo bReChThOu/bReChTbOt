@@ -12,6 +12,7 @@ namespace bReChTbOt.Config
     {
         Me = 1,
         Opponent,
-        Neutral
+        Neutral,
+		Unknown
     }
 }

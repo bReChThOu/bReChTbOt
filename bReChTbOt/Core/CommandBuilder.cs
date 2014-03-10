@@ -3,6 +3,7 @@
 // </copyright>
 // <author>Brecht Houben</author>
 // <date>10/03/2014</date>
+using bReChTbOt.Config;
 using bReChTbOt.Map;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,11 @@ namespace bReChTbOt.Core
         {
             Ouput(String.Join(" ", regions.Select(region => region.ID.ToString()).ToArray())); //.ToString() needed for mono compliance
         }
+
+		public static void OutputArmyPlacements(IEnumerable<ArmyPlacement> placements)
+		{
+			Ouput(String.Join(", ", placements.Select(placement => String.Format("{0} place_armies {1} {2}", ConfigFactory.GetInstance().GetMyBotName(), placement.Region.ID, placement.Armies)).ToArray()));
+		}
 
 		/// <summary>
 		/// Ouputs the specified line.
