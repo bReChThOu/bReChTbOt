@@ -22,10 +22,24 @@ namespace bReChTbOt.Core
             Ouput(String.Join(" ", regions.Select(region => region.ID.ToString()).ToArray())); //.ToString() needed for mono compliance
         }
 
+		/// <summary>
+		/// Outputs the army placements.
+		/// </summary>
+		/// <param name="placements">The placements.</param>
 		public static void OutputArmyPlacements(IEnumerable<ArmyPlacement> placements)
 		{
-			Ouput(String.Join(", ", placements.Select(placement => String.Format("{0} place_armies {1} {2}", ConfigFactory.GetInstance().GetMyBotName(), placement.Region.ID, placement.Armies)).ToArray()));
+			Ouput(String.Join(",", placements.Select(placement => String.Format("{0} place_armies {1} {2}", ConfigFactory.GetInstance().GetMyBotName(), placement.Region.ID, placement.Armies)).ToArray()));
 		}
+
+		/// <summary>
+		/// Outputs the army transfers.
+		/// </summary>
+		/// <param name="transfers">The transfers.</param>
+		public static void OutputArmyTransfers(IEnumerable<ArmyTransfer> transfers)
+		{
+			Ouput(String.Join(",", transfers.Select(transfer => String.Format("{0} attack/transfer {1} {2} {3}", ConfigFactory.GetInstance().GetMyBotName(), transfer.SourceRegion.ID, transfer.TargetRegion.ID, transfer.Armies)).ToArray()));
+		}
+
 
 		/// <summary>
 		/// Ouputs the specified line.

@@ -233,6 +233,16 @@ namespace bReChTbOt.Map
                 .Update(ConfigFactory.GetInstance().GetPlayerByName(playername) , nbrOfArmies);
         }
 
+		public void UpdateRegions(IEnumerable<ArmyPlacement> placements)
+		{
+			placements.ToList().ForEach(
+				(placement) => 
+				{
+					UpdateRegion(placement.Region.ID, ConfigFactory.GetInstance().GetMyBotName(), placement.Armies);
+				}
+			);
+		}
+
 		/// <summary>
 		/// Places the armies.
 		/// </summary>
@@ -242,19 +252,253 @@ namespace bReChTbOt.Map
              * Fase 1: Try to find the continents with the least regions and populate them with armies
              * 
              * */
-            var primaryRegion = Regions
-                .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
-                .OrderByDescending(region => GetSuperRegionForRegion(region).Priority)
-                .OrderByDescending(region => region.Neighbours.Count)
-				.FirstOrDefault();
-
-			var armyplacement = new ArmyPlacement() { Armies = ConfigFactory.GetInstance().GetStartingArmies(), Region = primaryRegion };
-
 			List<ArmyPlacement> placements = new List<ArmyPlacement>();
 
-			placements.Add(armyplacement);
+			SuperRegions.ForEach(
+			(superregion) =>
+			{
+				//Do i have any regions in this super region?
+					bool skipSuperRegion = !superregion
+						.ChildRegions
+						.Any(region => region.Player != null && region.Player.PlayerType == PlayerType.Me);
 
+					if (!skipSuperRegion)
+					{
+						Region selectedRegion = superregion
+						.ChildRegions
+						.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+						.OrderByDescending(region => region.Neighbours.Count)
+						.FirstOrDefault();
+
+						ArmyPlacement armyplacement = new ArmyPlacement() { Armies = ConfigFactory.GetInstance().GetStartingArmies(), Region = selectedRegion };
+
+						placements.Add(armyplacement);
+					}
+			});
+			
+			UpdateRegions(placements);
 			return placements;
         }
+
+		public IEnumerable<ArmyTransfer> TransferArmies()
+		{
+			/*
+			 * Inspect Border Territories foreach super region
+			 * If there are no enemy armies sighted: let's conquer the continent
+			 * 
+			 * If there are enemy armies sighted: let's move some troops to defend those invasion paths
+			 * */
+			List<ArmyTransfer> transfers = new List<ArmyTransfer>();
+			
+			SuperRegions.ForEach(
+				(superregion) =>
+				{
+					//Do i have any regions in this super region?
+					bool skipSuperRegion = !superregion
+						.ChildRegions
+						.Any(region => region.Player != null && region.Player.PlayerType == PlayerType.Me);
+
+					if (!skipSuperRegion)
+					{
+						int borderTerritoriesWithEnemyArmies = superregion.BorderTerritories
+							.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Opponent)
+							.Count();
+
+						int regionsWithEnemyArmies = superregion.ChildRegions
+							.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Opponent)
+							.Count();
+
+						/*
+						 * There is nobody in our way, let's conquer the continent, or even explore a new continent.
+						 * */
+						if (borderTerritoriesWithEnemyArmies == 0 && regionsWithEnemyArmies == 0)
+						{
+							Region targetRegion = null, sourceRegion = null;
+
+							targetRegion = superregion
+								.ChildRegions
+								.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Neutral)
+								.OrderBy(region => region.Neighbours.Count)
+								.FirstOrDefault();
+
+							
+
+							/* No neutral armies found, that should mean we own the continent.
+							 * Let's explore the world and go to a new super region
+							 * */
+							if (targetRegion == null)
+							{
+								targetRegion = superregion
+									.BorderTerritories
+									.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Neutral)
+									.FirstOrDefault();
+
+								if (targetRegion != null)
+								{
+									sourceRegion = targetRegion
+									.Neighbours
+									.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+									.OrderByDescending(region => region.NbrOfArmies)
+									.FirstOrDefault();
+								}
+							}
+
+
+							else
+							{
+								sourceRegion = targetRegion
+								.Neighbours
+								.Where(region => GetSuperRegionForRegion(region) == superregion)
+								.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+								.OrderByDescending(region => region.NbrOfArmies)
+								.FirstOrDefault();
+							}
+
+							
+							if (sourceRegion != null && targetRegion != null)
+							{
+								if (sourceRegion.NbrOfArmies > 1)
+								{
+									ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = sourceRegion.NbrOfArmies - 1 };
+									transfers.Add(transfer);
+								}
+							}
+
+						}
+
+						/*
+						 * There is an enemy army nearby. Let's not let them take this continent.
+						 * */
+	
+						else if (borderTerritoriesWithEnemyArmies > 0)
+						{
+							Region targetRegion, sourceRegion;
+
+							Region invadingBorderTerritory = superregion
+								.BorderTerritories
+								.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Opponent)
+								.OrderByDescending(region => region.NbrOfArmies)
+								.FirstOrDefault();
+
+							int enemyArmies = invadingBorderTerritory.NbrOfArmies;
+							
+							/* Let's see if we can attack. There is  60% change per attacking army. 
+							 * We will be extra safe and use a 50% chance.
+							 * This means we'll need at least double as much armies as our opponent.
+							 * If this isn't the case, we'll send more armies to this region and defend our grounds.
+							 * 
+							 * */
+
+							var possibleAttackingRegion = superregion
+								.ChildRegions
+								.Where(region => region.Neighbours.Contains(invadingBorderTerritory))
+								.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+								.Where(region => region.NbrOfArmies >= enemyArmies * 2)
+								.OrderByDescending(region => region.NbrOfArmies)
+								.FirstOrDefault();
+
+							//We can attack!
+							if (possibleAttackingRegion != null)
+							{
+								targetRegion = invadingBorderTerritory;
+								sourceRegion = possibleAttackingRegion;
+							}
+
+							/* We can't attack, so let's defend.
+							 * We'll send armies to the region that can be attacked with the least number of armies
+							 * We'll prefer sending from regions that can't be attacked.
+							 **/
+							else
+							{
+								targetRegion = invadingBorderTerritory
+									.Neighbours
+									.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+									.Where(region => GetSuperRegionForRegion(region) == superregion)
+									.OrderBy(region => region.NbrOfArmies)
+									.FirstOrDefault();
+
+								sourceRegion =  targetRegion
+									.Neighbours
+									.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+									.OrderByDescending(region => region.NbrOfArmies)
+									.FirstOrDefault();
+							}
+
+							ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = sourceRegion.NbrOfArmies - 1 };
+							if (transfer.Armies > 0 && transfer.SourceRegion != null && transfer.TargetRegion != null)
+							{
+								transfers.Add(transfer);
+							}
+						}
+
+
+						/*
+						 * There is an enemy army in this super region. Let's not let them take the whole continent.
+						 * */
+						else if (regionsWithEnemyArmies > 0)
+						{
+							Region targetRegion, sourceRegion;
+
+							Region hostileRegion = superregion
+								.ChildRegions
+								.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Opponent)
+								.FirstOrDefault();
+
+							int enemyArmies = hostileRegion.NbrOfArmies;
+
+							/* Let's see if we can attack. There is  60% change per attacking army. 
+							 * We will be extra safe and use a 50% chance.
+							 * This means we'll need at least double as much armies as our opponent.
+							 * If this isn't the case, we'll send more armies to this region and defend our grounds.
+							 * 
+							 * */
+
+							var possibleAttackingRegion = superregion
+								.ChildRegions
+								.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+								.Where(region => region.Neighbours.Contains(hostileRegion))
+								.Where(region => region.NbrOfArmies >= enemyArmies * 2)
+								.OrderByDescending(region => region.NbrOfArmies)
+								.FirstOrDefault();
+
+							//We can attack!
+							if (possibleAttackingRegion != null)
+							{
+								targetRegion = hostileRegion;
+								sourceRegion = possibleAttackingRegion;
+							}
+
+							/* We can't attack, so let's defend.
+							 * We'll send armies to the region that can be attacked with the least number of armies
+							 * We'll prefer sending from regions that can't be attacked.
+							 **/
+							else
+							{
+								targetRegion = hostileRegion
+									.Neighbours
+									.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+									.Where(region => GetSuperRegionForRegion(region) == superregion)
+									.OrderBy(region => region.NbrOfArmies)
+									.FirstOrDefault();
+
+								sourceRegion = targetRegion
+									.Neighbours
+									.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+									.OrderByDescending(region => region.NbrOfArmies)
+									.FirstOrDefault();
+							}
+
+							ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = sourceRegion.NbrOfArmies - 1 };
+							if (transfer.Armies > 0 && transfer.SourceRegion != null && transfer.TargetRegion != null)
+							{
+								transfers.Add(transfer);
+							}
+						}
+					}
+				}
+			);
+
+			return transfers;
+		}
     }
 }

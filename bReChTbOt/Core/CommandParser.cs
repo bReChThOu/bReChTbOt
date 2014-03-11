@@ -55,6 +55,9 @@ namespace bReChTbOt.Core
                                 case "place_armies":
 									CommandBuilder.OutputArmyPlacements(MapFactory.GetInstance().PlaceArmies());
                                     break;
+								case "attack/transfer":
+									CommandBuilder.OutputArmyTransfers(MapFactory.GetInstance().TransferArmies());
+									break;
                             }
                             break;
                         case "setup_map":

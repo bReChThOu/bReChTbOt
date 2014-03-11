@@ -65,7 +65,7 @@ namespace bReChTbOt.Config
 		/// <returns></returns>
         public Player GetPlayerByName(String name)
         {
-            return Players.Where(player => player.Name == name).FirstOrDefault();
+            return Players.Where(player => String.Equals(player.Name, name, StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
         }
 
 		/// <summary>
