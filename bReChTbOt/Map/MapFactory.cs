@@ -238,7 +238,7 @@ namespace bReChTbOt.Map
 			placements.ToList().ForEach(
 				(placement) => 
 				{
-					UpdateRegion(placement.Region.ID, ConfigFactory.GetInstance().GetMyBotName(), placement.Armies);
+					UpdateRegion(placement.Region.ID, ConfigFactory.GetInstance().GetMyBotName(), placement.Region.NbrOfArmies + placement.Armies);
 				}
 			);
 		}
