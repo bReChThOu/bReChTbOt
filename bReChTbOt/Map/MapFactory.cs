@@ -254,7 +254,7 @@ namespace bReChTbOt.Map
              * */
 			List<ArmyPlacement> placements = new List<ArmyPlacement>();
 
-			SuperRegions.ForEach(
+		/*	SuperRegions.ForEach(
 			(superregion) =>
 			{
 				//Do i have any regions in this super region?
@@ -264,17 +264,47 @@ namespace bReChTbOt.Map
 
 					if (!skipSuperRegion)
 					{
-						Region selectedRegion = superregion
-						.ChildRegions
-						.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
-						.OrderByDescending(region => region.Neighbours.Count)
-						.FirstOrDefault();
+						Region selectedRegion = null;
 
-						ArmyPlacement armyplacement = new ArmyPlacement() { Armies = ConfigFactory.GetInstance().GetStartingArmies(), Region = selectedRegion };
+						int borderTerritoriesWithEnemyArmies = superregion.BorderTerritories
+							.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Opponent)
+							.Count();
 
-						placements.Add(armyplacement);
+						int regionsWithEnemyArmies = superregion.ChildRegions
+							.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Opponent)
+							.Count();
+
+						if (borderTerritoriesWithEnemyArmies > 0 || regionsWithEnemyArmies > 0)
+						{
+							 selectedRegion = superregion
+							.ChildRegions
+							.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+							.OrderByDescending(region => region.Neighbours.Count)
+							.FirstOrDefault();
+						}
+
+						if (selectedRegion != null)
+						{
+							ArmyPlacement armyplacement = new ArmyPlacement() { Armies = ConfigFactory.GetInstance().GetStartingArmies(), Region = selectedRegion };
+							placements.Add(armyplacement);
+						}
 					}
-			});
+			});*/
+
+			if (placements.Count == 0)
+			{
+				var primaryRegion = Regions
+				   .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+				   .OrderByDescending(region => GetSuperRegionForRegion(region).Priority)
+				   .OrderBy(region => region.NbrOfArmies)
+				   .OrderByDescending(region => region.Neighbours.Count)
+				   .FirstOrDefault();
+
+				var armyplacement = new ArmyPlacement() { Armies = ConfigFactory.GetInstance().GetStartingArmies(), Region = primaryRegion };
+
+				placements.Add(armyplacement);
+			}
+
 			
 			UpdateRegions(placements);
 			return placements;
@@ -357,7 +387,7 @@ namespace bReChTbOt.Map
 							
 							if (sourceRegion != null && targetRegion != null)
 							{
-								if (sourceRegion.NbrOfArmies > 1)
+								if (sourceRegion.NbrOfArmies > 5)
 								{
 									ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = sourceRegion.NbrOfArmies - 1 };
 									transfers.Add(transfer);
@@ -372,7 +402,7 @@ namespace bReChTbOt.Map
 	
 						else if (borderTerritoriesWithEnemyArmies > 0)
 						{
-							Region targetRegion, sourceRegion;
+							Region targetRegion = null, sourceRegion = null;
 
 							Region invadingBorderTerritory = superregion
 								.BorderTerritories
@@ -393,7 +423,7 @@ namespace bReChTbOt.Map
 								.ChildRegions
 								.Where(region => region.Neighbours.Contains(invadingBorderTerritory))
 								.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
-								.Where(region => region.NbrOfArmies >= enemyArmies * 2)
+								.Where(region => region.NbrOfArmies >= enemyArmies * 2 && region.NbrOfArmies > 5)
 								.OrderByDescending(region => region.NbrOfArmies)
 								.FirstOrDefault();
 
@@ -417,17 +447,24 @@ namespace bReChTbOt.Map
 									.OrderBy(region => region.NbrOfArmies)
 									.FirstOrDefault();
 
-								sourceRegion =  targetRegion
-									.Neighbours
-									.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
-									.OrderByDescending(region => region.NbrOfArmies)
-									.FirstOrDefault();
+								if (targetRegion != null)
+								{
+
+									sourceRegion = targetRegion
+										.Neighbours
+										.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+										.OrderByDescending(region => region.NbrOfArmies)
+										.FirstOrDefault();
+								}
 							}
 
-							ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = sourceRegion.NbrOfArmies - 1 };
-							if (transfer.Armies > 0 && transfer.SourceRegion != null && transfer.TargetRegion != null)
+							if (sourceRegion != null && targetRegion != null)
 							{
-								transfers.Add(transfer);
+								if (sourceRegion.NbrOfArmies > 5)
+								{
+									ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = sourceRegion.NbrOfArmies - 1 };
+									transfers.Add(transfer);
+								}
 							}
 						}
 
@@ -437,7 +474,7 @@ namespace bReChTbOt.Map
 						 * */
 						else if (regionsWithEnemyArmies > 0)
 						{
-							Region targetRegion, sourceRegion;
+							Region targetRegion = null, sourceRegion = null;
 
 							Region hostileRegion = superregion
 								.ChildRegions
@@ -481,17 +518,24 @@ namespace bReChTbOt.Map
 									.OrderBy(region => region.NbrOfArmies)
 									.FirstOrDefault();
 
-								sourceRegion = targetRegion
-									.Neighbours
-									.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
-									.OrderByDescending(region => region.NbrOfArmies)
-									.FirstOrDefault();
+								if (targetRegion != null)
+								{
+
+									sourceRegion = targetRegion
+										.Neighbours
+										.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+										.OrderByDescending(region => region.NbrOfArmies)
+										.FirstOrDefault();
+								}
 							}
 
-							ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = sourceRegion.NbrOfArmies - 1 };
-							if (transfer.Armies > 0 && transfer.SourceRegion != null && transfer.TargetRegion != null)
+							if (sourceRegion != null && targetRegion != null)
 							{
-								transfers.Add(transfer);
+								if (sourceRegion.NbrOfArmies > 5)
+								{
+									ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = sourceRegion.NbrOfArmies - 1 };
+									transfers.Add(transfer);
+								}
 							}
 						}
 					}

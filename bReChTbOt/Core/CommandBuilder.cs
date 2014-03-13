@@ -19,7 +19,7 @@ namespace bReChTbOt.Core
 		/// <param name="regions">The regions.</param>
         public static void OutputStartingRegions(IEnumerable<Region> regions)
         {
-            Ouput(String.Join(" ", regions.Select(region => region.ID.ToString()).ToArray())); //.ToString() needed for mono compliance
+            Output(String.Join(" ", regions.Select(region => region.ID.ToString()).ToArray())); //.ToString() needed for mono compliance
         }
 
 		/// <summary>
@@ -28,7 +28,7 @@ namespace bReChTbOt.Core
 		/// <param name="placements">The placements.</param>
 		public static void OutputArmyPlacements(IEnumerable<ArmyPlacement> placements)
 		{
-			Ouput(String.Join(",", placements.Select(placement => String.Format("{0} place_armies {1} {2}", ConfigFactory.GetInstance().GetMyBotName(), placement.Region.ID, placement.Armies)).ToArray()));
+			Output(String.Join(",", placements.Select(placement => String.Format("{0} place_armies {1} {2}", ConfigFactory.GetInstance().GetMyBotName(), placement.Region.ID, placement.Armies)).ToArray()));
 		}
 
 		/// <summary>
@@ -37,7 +37,12 @@ namespace bReChTbOt.Core
 		/// <param name="transfers">The transfers.</param>
 		public static void OutputArmyTransfers(IEnumerable<ArmyTransfer> transfers)
 		{
-			Ouput(String.Join(",", transfers.Select(transfer => String.Format("{0} attack/transfer {1} {2} {3}", ConfigFactory.GetInstance().GetMyBotName(), transfer.SourceRegion.ID, transfer.TargetRegion.ID, transfer.Armies)).ToArray()));
+			if (transfers.Count() == 0)
+			{
+				Output("No moves");
+				return;
+			}
+			Output(String.Join(",", transfers.Select(transfer => String.Format("{0} attack/transfer {1} {2} {3}", ConfigFactory.GetInstance().GetMyBotName(), transfer.SourceRegion.ID, transfer.TargetRegion.ID, transfer.Armies)).ToArray()));
 		}
 
 
@@ -45,7 +50,7 @@ namespace bReChTbOt.Core
 		/// Ouputs the specified line.
 		/// </summary>
 		/// <param name="line">The line.</param>
-        public static void Ouput(String line)
+        public static void Output(String line)
         {
             Console.WriteLine(line);
         }
