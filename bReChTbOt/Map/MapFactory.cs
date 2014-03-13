@@ -338,6 +338,8 @@ namespace bReChTbOt.Map
 							.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Opponent)
 							.Count();
 
+						bool transferDone = false;
+
 						/*
 						 * There is nobody in our way, let's conquer the continent, or even explore a new continent.
 						 * */
@@ -348,10 +350,10 @@ namespace bReChTbOt.Map
 							targetRegion = superregion
 								.ChildRegions
 								.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Neutral)
-								.OrderBy(region => region.Neighbours.Count)
+								.OrderByDescending(region =>
+									FlattenIEnumerable(region.Neighbours.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me).Select(reg => reg.NbrOfArmies))
+								)
 								.FirstOrDefault();
-
-							
 
 							/* No neutral armies found, that should mean we own the continent.
 							 * Let's explore the world and go to a new super region
@@ -420,6 +422,7 @@ namespace bReChTbOt.Map
 								{
 									ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = sourceRegion.NbrOfArmies - 1 };
 									transfers.Add(transfer);
+									transferDone = true;
 								}
 							}
 
@@ -428,8 +431,8 @@ namespace bReChTbOt.Map
 						/*
 						 * There is an enemy army nearby. Let's not let them take this continent.
 						 * */
-	
-						else if (borderTerritoriesWithEnemyArmies > 0)
+
+						if (borderTerritoriesWithEnemyArmies > 0 && !transferDone)
 						{
 							Region targetRegion = null, sourceRegion = null;
 
@@ -501,7 +504,7 @@ namespace bReChTbOt.Map
 						/*
 						 * There is an enemy army in this super region. Let's not let them take the whole continent.
 						 * */
-						else if (regionsWithEnemyArmies > 0)
+						if (regionsWithEnemyArmies > 0 && !transferDone)
 						{
 							Region targetRegion = null, sourceRegion = null;
 

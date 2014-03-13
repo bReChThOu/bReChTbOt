@@ -32,11 +32,6 @@ namespace bReChTbOt.Core
         {
             while (true)
             {
-				String[] ls = File.ReadAllLines(@"C:\data\bot.txt", System.Text.Encoding.ASCII);
-				foreach (String s in ls)
-				{
-					parser.Parse(s);
-				}
 
                 /* Normalize the input:
                  * 1) Trim leading and trailing whitespaces
