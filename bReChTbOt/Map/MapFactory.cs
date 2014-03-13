@@ -294,10 +294,10 @@ namespace bReChTbOt.Map
 			if (placements.Count == 0)
 			{
 				var primaryRegion = Regions
+				   .Where(region => region.NbrOfArmies < 100)
 				   .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
-				   .OrderByDescending(region => GetSuperRegionForRegion(region).Priority)
+				   .OrderBy(region => ( GetSuperRegionForRegion(region).ChildRegions.Count(child => child.Player.PlayerType == PlayerType.Me)))
 				   .OrderBy(region => region.NbrOfArmies)
-				   .OrderByDescending(region => region.Neighbours.Count)
 				   .FirstOrDefault();
 
 				var armyplacement = new ArmyPlacement() { Armies = ConfigFactory.GetInstance().GetStartingArmies(), Region = primaryRegion };
@@ -359,8 +359,12 @@ namespace bReChTbOt.Map
 							if (targetRegion == null)
 							{
 								targetRegion = superregion
-									.BorderTerritories
+									.InvasionPaths
 									.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Neutral)
+									.OrderByDescending(region =>
+										FlattenIEnumerable(region.Neighbours.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me).Select(reg => reg.NbrOfArmies))
+
+									)
 									.FirstOrDefault();
 
 								if (targetRegion != null)
@@ -370,6 +374,31 @@ namespace bReChTbOt.Map
 									.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
 									.OrderByDescending(region => region.NbrOfArmies)
 									.FirstOrDefault();
+								}
+								else
+								{
+									targetRegion = superregion
+									.InvasionPaths
+									.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Opponent)
+									.OrderByDescending(region =>
+										FlattenIEnumerable(
+											region.Neighbours
+												.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me)
+												.Where(neighbor => neighbor.NbrOfArmies > 5)
+												.Where(neighbor => neighbor.NbrOfArmies > region.NbrOfArmies * 2)
+												.Select(reg => reg.NbrOfArmies))
+									)
+
+									.FirstOrDefault();
+
+									if (targetRegion != null)
+									{
+										sourceRegion = targetRegion
+										.Neighbours
+										.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+										.OrderByDescending(region => region.NbrOfArmies)
+										.FirstOrDefault();
+									}
 								}
 							}
 
@@ -543,6 +572,13 @@ namespace bReChTbOt.Map
 			);
 
 			return transfers;
+		}
+
+		private int FlattenIEnumerable(IEnumerable<int> ienumerable)
+		{
+			int sum = 0;
+			ienumerable.ToList().ForEach(item => sum += item);
+			return sum;
 		}
     }
 }
