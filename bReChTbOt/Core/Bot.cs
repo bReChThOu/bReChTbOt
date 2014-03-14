@@ -32,7 +32,6 @@ namespace bReChTbOt.Core
         {
             while (true)
             {
-
                 /* Normalize the input:
                  * 1) Trim leading and trailing whitespaces
                  * 2) Replace all whitespaces with a regular space

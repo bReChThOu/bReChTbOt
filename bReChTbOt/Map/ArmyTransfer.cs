@@ -1,10 +1,19 @@
-﻿using System;
+﻿// <copyright file="ArmyPlacement.cs">
+//		Copyright (c) 2013 All Rights Reserved
+// </copyright>
+// <author>Brecht Houben</author>
+// <date>14/03/2014</date>
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace bReChTbOt.Map
 {
+	/// <summary>
+	/// Class that represents an army transfer
+	/// </summary>
 	public class ArmyTransfer
 	{
 		/// <summary>
