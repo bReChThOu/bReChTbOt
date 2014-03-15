@@ -296,8 +296,9 @@ namespace bReChTbOt.Map
 				var primaryRegion = Regions
 				   .Where(region => region.NbrOfArmies < 100)
 				   .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
-				   .OrderBy(region => ( GetSuperRegionForRegion(region).ChildRegions.Count(child => child.Player.PlayerType == PlayerType.Me)))
-				   .OrderBy(region => region.NbrOfArmies)
+                   .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player.PlayerType == PlayerType.Opponent))
+				   .ThenBy(region => ( GetSuperRegionForRegion(region).ChildRegions.Count(child => child.Player.PlayerType == PlayerType.Me)))
+				   .ThenBy(region => region.NbrOfArmies)
 				   .FirstOrDefault();
 
 				var armyplacement = new ArmyPlacement() { Armies = ConfigFactory.GetInstance().GetStartingArmies(), Region = primaryRegion };
@@ -331,7 +332,7 @@ namespace bReChTbOt.Map
 					if (!skipSuperRegion)
 					{
 						int borderTerritoriesWithEnemyArmies = superregion.BorderTerritories
-							.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Opponent)
+                            .Where(bt => bt.Neighbours.Any(btn => btn.Player != null && btn.Player.PlayerType == PlayerType.Opponent))
 							.Count();
 
 						int regionsWithEnemyArmies = superregion.ChildRegions
@@ -437,67 +438,71 @@ namespace bReChTbOt.Map
 							Region targetRegion = null, sourceRegion = null;
 
 							Region invadingBorderTerritory = superregion
-								.BorderTerritories
-								.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Opponent)
+								.InvasionPaths
+                                .Where(invasionpath => invasionpath.Player != null && invasionpath.Player.PlayerType == PlayerType.Opponent)
 								.OrderByDescending(region => region.NbrOfArmies)
 								.FirstOrDefault();
 
-							int enemyArmies = invadingBorderTerritory.NbrOfArmies;
-							
-							/* Let's see if we can attack. There is  60% change per attacking army. 
-							 * We will be extra safe and use a 50% chance.
-							 * This means we'll need at least double as much armies as our opponent.
-							 * If this isn't the case, we'll send more armies to this region and defend our grounds.
-							 * 
-							 * */
+                            if (invadingBorderTerritory != null)
+                            {
 
-							var possibleAttackingRegion = superregion
-								.ChildRegions
-								.Where(region => region.Neighbours.Contains(invadingBorderTerritory))
-								.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
-								.Where(region => (region.NbrOfArmies >= enemyArmies * 2 || region.NbrOfArmies > 100) && region.NbrOfArmies > 5)
-								.OrderByDescending(region => region.NbrOfArmies)
-								.FirstOrDefault();
+                                int enemyArmies = invadingBorderTerritory.NbrOfArmies;
 
-							//We can attack!
-							if (possibleAttackingRegion != null)
-							{
-								targetRegion = invadingBorderTerritory;
-								sourceRegion = possibleAttackingRegion;
-							}
+                                /* Let's see if we can attack. There is  60% change per attacking army. 
+                                 * We will be extra safe and use a 50% chance.
+                                 * This means we'll need at least double as much armies as our opponent.
+                                 * If this isn't the case, we'll send more armies to this region and defend our grounds.
+                                 * 
+                                 * */
 
-							/* We can't attack, so let's defend.
-							 * We'll send armies to the region that can be attacked with the least number of armies
-							 * We'll prefer sending from regions that can't be attacked.
-							 **/
-							else
-							{
-								targetRegion = invadingBorderTerritory
-									.Neighbours
-									.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
-									.Where(region => GetSuperRegionForRegion(region) == superregion)
-									.OrderBy(region => region.NbrOfArmies)
-									.FirstOrDefault();
+                                var possibleAttackingRegion = superregion
+                                    .ChildRegions
+                                    .Where(region => region.Neighbours.Contains(invadingBorderTerritory))
+                                    .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+                                    .Where(region => (region.NbrOfArmies >= enemyArmies * 2 || region.NbrOfArmies > 100) && region.NbrOfArmies > 5)
+                                    .OrderByDescending(region => region.NbrOfArmies)
+                                    .FirstOrDefault();
 
-								if (targetRegion != null)
-								{
+                                //We can attack!
+                                if (possibleAttackingRegion != null)
+                                {
+                                    targetRegion = invadingBorderTerritory;
+                                    sourceRegion = possibleAttackingRegion;
+                                }
 
-									sourceRegion = targetRegion
-										.Neighbours
-										.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
-										.OrderByDescending(region => region.NbrOfArmies)
-										.FirstOrDefault();
-								}
-							}
+                                /* We can't attack, so let's defend.
+                                 * We'll send armies to the region that can be attacked with the least number of armies
+                                 * We'll prefer sending from regions that can't be attacked.
+                                 **/
+                                else
+                                {
+                                    targetRegion = invadingBorderTerritory
+                                        .Neighbours
+                                        .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+                                        .Where(region => GetSuperRegionForRegion(region) == superregion)
+                                        .OrderBy(region => region.NbrOfArmies)
+                                        .FirstOrDefault();
 
-							if (sourceRegion != null && targetRegion != null)
-							{
-								if (sourceRegion.NbrOfArmies > 5)
-								{
-									ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = sourceRegion.NbrOfArmies - 1 };
-									transfers.Add(transfer);
-								}
-							}
+                                    if (targetRegion != null)
+                                    {
+
+                                        sourceRegion = targetRegion
+                                            .Neighbours
+                                            .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+                                            .OrderByDescending(region => region.NbrOfArmies)
+                                            .FirstOrDefault();
+                                    }
+                                }
+
+                                if (sourceRegion != null && targetRegion != null)
+                                {
+                                    if (sourceRegion.NbrOfArmies > 5)
+                                    {
+                                        ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = sourceRegion.NbrOfArmies - 1 };
+                                        transfers.Add(transfer);
+                                    }
+                                }
+                            }
 						}
 
 
