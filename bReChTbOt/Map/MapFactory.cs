@@ -421,7 +421,7 @@ namespace bReChTbOt.Map
 							{
 								if (sourceRegion.NbrOfArmies > 5)
 								{
-									ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = sourceRegion.NbrOfArmies - 1 };
+                                    ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = GetRequiredArmies(sourceRegion, targetRegion) };
 									transfers.Add(transfer);
 									transferDone = true;
 								}
@@ -498,7 +498,7 @@ namespace bReChTbOt.Map
                                 {
                                     if (sourceRegion.NbrOfArmies > 5)
                                     {
-                                        ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = sourceRegion.NbrOfArmies - 1 };
+                                        ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = GetRequiredArmies(sourceRegion, targetRegion) };
                                         transfers.Add(transfer);
                                     }
                                 }
@@ -570,7 +570,7 @@ namespace bReChTbOt.Map
 							{
 								if (sourceRegion.NbrOfArmies > 5)
 								{
-									ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = sourceRegion.NbrOfArmies - 1 };
+                                    ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = GetRequiredArmies(sourceRegion, targetRegion) };
 									transfers.Add(transfer);
 								}
 							}
@@ -581,6 +581,20 @@ namespace bReChTbOt.Map
 
 			return transfers;
 		}
+
+        private int GetRequiredArmies(Region sourceRegion, Region targetRegion)
+        {
+            int source = sourceRegion.NbrOfArmies;
+            int target = targetRegion.NbrOfArmies;
+
+            if (source >= target * 2 + 1)
+            {
+                return target * 2;
+            }
+
+
+            return sourceRegion.NbrOfArmies - 1;
+        }
 
 		private int FlattenIEnumerable(IEnumerable<int> ienumerable)
 		{
