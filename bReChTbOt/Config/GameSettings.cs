@@ -14,5 +14,13 @@ namespace bReChTbOt.Config
 		/// The starting armies.
 		/// </value>
         public int StartingArmies { get; set; }
+
+		/// <summary>
+		/// Gets or sets the round number.
+		/// </summary>
+		/// <value>
+		/// The round number
+		/// </value>
+		public int RoundNumber { get; set; }
     }
 }

@@ -109,5 +109,15 @@ namespace bReChTbOt.Config
             return GameSettings.StartingArmies;
         }
 
+		public void SetRoundNumber(int round)
+		{
+			GameSettings.RoundNumber = round;
+		}
+
+		public int GetRoundNumber()
+		{
+			return GameSettings.RoundNumber;
+		}
+
     }
 }

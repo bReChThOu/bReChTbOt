@@ -579,6 +579,21 @@ namespace bReChTbOt.Map
 				}
 			);
 
+			//Don't attack the enemy if we are in the first round, instead skip this move
+			if (ConfigFactory.GetInstance().GetRoundNumber() == 1)
+			{
+				transfers.ForEach(
+					transfer =>
+					{
+						if (transfer.TargetRegion.Player != null &&
+							transfer.TargetRegion.Player.PlayerType == PlayerType.Opponent)
+						{
+							transfers.Remove(transfer);
+						}
+					}
+				);
+			}
+
 			return transfers;
 		}
 

@@ -29,6 +29,10 @@ namespace bReChTbOt.Core
 
                     switch (command)
                     {
+						case "round":
+							int round = Int32.Parse(commandargs[1]);
+							ConfigFactory.GetInstance().SetRoundNumber(round);
+							break;
                         case "settings":
                             subcommand = commandargs[1].ToLowerInvariant();
                             switch (subcommand)
