@@ -348,6 +348,7 @@ namespace bReChTbOt.Map
 
 						int regionsWithEnemyArmies = superregion.ChildRegions
 							.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Opponent)
+							.Where(region => region.Neighbours.Any(neigbor => neigbor.Player != null && neigbor.Player.PlayerType == PlayerType.Me))
 							.Count();
 
 						bool transferDone = false;
@@ -385,7 +386,7 @@ namespace bReChTbOt.Map
 								{
 									sourceRegion = targetRegion
 									.Neighbours
-									.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+									.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me && region.NbrOfArmies > 5)
 									.OrderByDescending(region => region.NbrOfArmies)
 									.FirstOrDefault();
 								}
@@ -409,7 +410,7 @@ namespace bReChTbOt.Map
 									{
 										sourceRegion = targetRegion
 										.Neighbours
-										.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+										.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me && region.NbrOfArmies > 5)
 										.OrderByDescending(region => region.NbrOfArmies)
 										.FirstOrDefault();
 									}
@@ -422,7 +423,7 @@ namespace bReChTbOt.Map
 								sourceRegion = targetRegion
 								.Neighbours
 								.Where(region => GetSuperRegionForRegion(region) == superregion)
-								.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+								.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me && region.NbrOfArmies > 5)
 								.OrderByDescending(region => region.NbrOfArmies)
 								.FirstOrDefault();
 							}
