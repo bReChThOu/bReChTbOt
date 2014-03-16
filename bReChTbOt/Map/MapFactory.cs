@@ -343,6 +343,7 @@ namespace bReChTbOt.Map
 					{
 						int borderTerritoriesWithEnemyArmies = superregion.BorderTerritories
                             .Where(bt => bt.Neighbours.Any(btn => btn.Player != null && btn.Player.PlayerType == PlayerType.Opponent))
+							.Where(bt => (bt.Player != null && bt.Player.PlayerType == PlayerType.Me) || bt.Neighbours.Any(btn => btn.Player != null && btn.Player.PlayerType == PlayerType.Me && GetSuperRegionForRegion(btn) == superregion))
 							.Count();
 
 						int regionsWithEnemyArmies = superregion.ChildRegions
