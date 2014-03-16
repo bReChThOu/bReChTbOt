@@ -248,65 +248,75 @@ namespace bReChTbOt.Map
 		/// </summary>
         public IEnumerable<ArmyPlacement> PlaceArmies()
         {
-            /*
-             * Fase 1: Try to find the continents with the least regions and populate them with armies
-             * 
-             * */
 			List<ArmyPlacement> placements = new List<ArmyPlacement>();
+			int startingArmies = ConfigFactory.GetInstance().GetStartingArmies();
 
-		/*	SuperRegions.ForEach(
-			(superregion) =>
-			{
-				//Do i have any regions in this super region?
-					bool skipSuperRegion = !superregion
-						.ChildRegions
-						.Any(region => region.Player != null && region.Player.PlayerType == PlayerType.Me);
-
-					if (!skipSuperRegion)
-					{
-						Region selectedRegion = null;
-
-						int borderTerritoriesWithEnemyArmies = superregion.BorderTerritories
-							.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Opponent)
-							.Count();
-
-						int regionsWithEnemyArmies = superregion.ChildRegions
-							.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Opponent)
-							.Count();
-
-						if (borderTerritoriesWithEnemyArmies > 0 || regionsWithEnemyArmies > 0)
-						{
-							 selectedRegion = superregion
-							.ChildRegions
-							.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
-							.OrderByDescending(region => region.Neighbours.Count)
-							.FirstOrDefault();
-						}
-
-						if (selectedRegion != null)
-						{
-							ArmyPlacement armyplacement = new ArmyPlacement() { Armies = ConfigFactory.GetInstance().GetStartingArmies(), Region = selectedRegion };
-							placements.Add(armyplacement);
-						}
-					}
-			});*/
-
-			if (placements.Count == 0)
-			{
-				var primaryRegion = Regions
+			var primaryRegion = Regions
 				   .Where(region => region.NbrOfArmies < 100)
 				   .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
-                   .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player.PlayerType == PlayerType.Opponent))
-				   .ThenBy(region => ( GetSuperRegionForRegion(region).ChildRegions.Count(child => child.Player.PlayerType == PlayerType.Me)))
+				   .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Opponent))
+				   .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral))
+				   .ThenBy(region => (GetSuperRegionForRegion(region).ChildRegions.Count(child => child.Player.PlayerType == PlayerType.Me)))
 				   .ThenBy(region => region.NbrOfArmies)
 				   .FirstOrDefault();
 
-				var armyplacement = new ArmyPlacement() { Armies = ConfigFactory.GetInstance().GetStartingArmies(), Region = primaryRegion };
+			if (startingArmies == 5)
+			{
+				var armyplacement = new ArmyPlacement() { Armies = 5, Region = primaryRegion };
+				placements.Add(armyplacement);
+			}
+			if (startingArmies >= 7 && startingArmies <= 9)
+			{
+				var secundaryRegion = Regions
+					.Where(region => GetSuperRegionForRegion(region) != GetSuperRegionForRegion(primaryRegion))
+				   .Where(region => region.NbrOfArmies < 100)
+				   .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+				   .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Opponent))
+				   .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral))
+				   .ThenBy(region => (GetSuperRegionForRegion(region).ChildRegions.Count(child => child.Player.PlayerType == PlayerType.Me)))
+				   .ThenBy(region => region.NbrOfArmies)
+				   .FirstOrDefault();
+				var armyplacement = new ArmyPlacement() { Armies = 5, Region = primaryRegion };
+				placements.Add(armyplacement);
+				armyplacement = new ArmyPlacement() { Armies = startingArmies - 5, Region = secundaryRegion };
+				placements.Add(armyplacement);
+			}
+			if (startingArmies > 9 && startingArmies <= 18)
+			{
+				var secundaryRegion = Regions
+					.Where(region => GetSuperRegionForRegion(region) != GetSuperRegionForRegion(primaryRegion))
+				   .Where(region => region.NbrOfArmies < 100)
+				   .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+				   .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Opponent))
+				   .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral))
+				   .ThenBy(region => (GetSuperRegionForRegion(region).ChildRegions.Count(child => child.Player.PlayerType == PlayerType.Me)))
+				   .ThenBy(region => region.NbrOfArmies)
+				   .FirstOrDefault();
 
+				var armyplacement = new ArmyPlacement() { Armies = 9, Region = primaryRegion };
+				placements.Add(armyplacement);
+				armyplacement = new ArmyPlacement() { Armies = startingArmies - 9, Region = secundaryRegion };
+				placements.Add(armyplacement);
+			}
+			if (startingArmies > 18)
+			{
+				var secundaryRegion = Regions
+					.Where(region => GetSuperRegionForRegion(region) != GetSuperRegionForRegion(primaryRegion))
+				   .Where(region => region.NbrOfArmies < 100)
+				   .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+				   .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Opponent))
+				   .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(region) == GetSuperRegionForRegion(neighbor)))
+				   .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(region) != GetSuperRegionForRegion(neighbor)))
+				   .ThenBy(region => (GetSuperRegionForRegion(region).ChildRegions.Count(child => child.Player.PlayerType == PlayerType.Me)))
+				   .ThenBy(region => region.NbrOfArmies)
+				   .FirstOrDefault();
+
+				var armyplacement = new ArmyPlacement() { Armies = startingArmies - 9, Region = primaryRegion };
+				placements.Add(armyplacement);
+				armyplacement = new ArmyPlacement() { Armies = 9, Region = secundaryRegion };
 				placements.Add(armyplacement);
 			}
 
-			
 			UpdateRegions(placements);
 			return placements;
         }
@@ -500,6 +510,7 @@ namespace bReChTbOt.Map
                                     {
                                         ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = GetRequiredArmies(sourceRegion, targetRegion) };
                                         transfers.Add(transfer);
+										transferDone = true;
                                     }
                                 }
                             }
@@ -572,7 +583,43 @@ namespace bReChTbOt.Map
 								{
                                     ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = GetRequiredArmies(sourceRegion, targetRegion) };
 									transfers.Add(transfer);
+									transferDone = true;
 								}
+							}
+						}
+						/*
+						 * No moves or transfers made yet.
+						 * Let's see if we can move some troops away from the inland where they can't do anything
+						 * besides being stuck
+						 * */
+						if (!transferDone)
+						{
+							var stuckArmies = superregion.ChildRegions.Where(region => region.NbrOfArmies > 1 && region.Neighbours.All(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me));
+							if (stuckArmies.Count() > 0)
+							{
+								var stuckArmie = stuckArmies.First();
+								//Let's see if there are neighbors that have foreign neighbors (neutral/opponent)
+								var firstDegree = stuckArmie.Neighbours.Where(neighbor => neighbor.Neighbours.Any(neighborneighbor => neighborneighbor.Player != null && neighborneighbor.Player.PlayerType != PlayerType.Me));
+								if (firstDegree.Count() > 0)
+								{
+									var freeway = firstDegree.First();
+									ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = stuckArmie, TargetRegion = freeway, Armies = GetRequiredArmies(stuckArmie, freeway) };
+									transfers.Add(transfer);
+								}
+								//Nope, let's try second degree
+								else
+								{
+									var secondDegree = stuckArmie.Neighbours
+										.Where(neighbor => neighbor.Neighbours
+										.Any(neighborneighbor => neighborneighbor.Neighbours.Any(neighborneighborneighbor => neighborneighborneighbor.Player != null && neighborneighborneighbor.Player.PlayerType != PlayerType.Me)));
+									if (secondDegree.Count() > 0)
+									{
+										var freeway = secondDegree.First();
+										ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = stuckArmie, TargetRegion = freeway, Armies = GetRequiredArmies(stuckArmie, freeway) };
+										transfers.Add(transfer);
+									}
+								}
+
 							}
 						}
 					}
@@ -601,13 +648,6 @@ namespace bReChTbOt.Map
         {
             int source = sourceRegion.NbrOfArmies;
             int target = targetRegion.NbrOfArmies;
-
-            if (source >= target * 2 + 1)
-            {
-                return target * 2;
-            }
-
-
             return sourceRegion.NbrOfArmies - 1;
         }
 
