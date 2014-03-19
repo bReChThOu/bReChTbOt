@@ -29,10 +29,6 @@ namespace bReChTbOt.Core
 
                     switch (command)
                     {
-						case "round":
-							int round = Int32.Parse(commandargs[1]);
-							ConfigFactory.GetInstance().SetRoundNumber(round);
-							break;
                         case "settings":
                             subcommand = commandargs[1].ToLowerInvariant();
                             switch (subcommand)
@@ -102,6 +98,7 @@ namespace bReChTbOt.Core
                             CommandBuilder.OutputStartingRegions(MapFactory.GetInstance().PickFavoriteStartingRegions());
                             break;
                         case "update_map":
+							ConfigFactory.GetInstance().SetRoundNumber(ConfigFactory.GetInstance().GetRoundNumber() + 1);
                              MapFactory.GetInstance().ClearRegions();
                             for (int i = 1; i < commandargs.Length; i++)
                             {
