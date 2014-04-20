@@ -130,5 +130,21 @@ namespace bReChTbOt.Config
             return GameSettings.StartRoundNumber;
         }
 
+        public int GetMaximumTreshold()
+        {
+            if (GetRoundNumber() > 78)
+            {
+                return 100;
+            }
+            if (GetRoundNumber() > 65)
+            {
+                return 150;
+            }
+            if (GetRoundNumber() > 50)
+            {
+                return 200;
+            }
+            return 500;
+        }
     }
 }

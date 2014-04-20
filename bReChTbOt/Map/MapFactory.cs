@@ -522,7 +522,7 @@ namespace bReChTbOt.Map
                                     .ChildRegions
                                     .Where(region => region.Neighbours.Contains(invadingBorderTerritory))
                                     .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
-                                    .Where(region => (region.NbrOfArmies >= enemyArmies * 2 || region.NbrOfArmies > 100) && region.NbrOfArmies > 5)
+                                    .Where(region => (region.NbrOfArmies >= enemyArmies * 2 || region.NbrOfArmies > ConfigFactory.GetInstance().GetMaximumTreshold()) && region.NbrOfArmies > 5)
                                     .OrderByDescending(region => region.NbrOfArmies)
                                     .FirstOrDefault();
 
@@ -587,7 +587,7 @@ namespace bReChTbOt.Map
 								.ChildRegions
 								.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
 								.Where(region => region.Neighbours.Contains(hostileRegion))
-								.Where(region => (region.NbrOfArmies >= enemyArmies * 2 || region.NbrOfArmies > 100) && region.NbrOfArmies > 5)
+                                .Where(region => (region.NbrOfArmies >= enemyArmies * 2 || region.NbrOfArmies > ConfigFactory.GetInstance().GetMaximumTreshold()) && region.NbrOfArmies > 5)
 								.OrderByDescending(region => region.NbrOfArmies)
 								.FirstOrDefault();
 
