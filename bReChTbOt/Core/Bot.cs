@@ -32,15 +32,6 @@ namespace bReChTbOt.Core
         {
             while (true)
             {
-                String[] ls = File.ReadAllLines(@"C:\users\brecht\bot.txt", System.Text.Encoding.ASCII);
-                foreach( string l in ls)
-                {
-                    if (l.Contains("Round 11"))
-                    {
-                        int a = 0;
-                    }
-                    parser.Parse(l);
-                }
 
                 /* Normalize the input:
                  * 1) Trim leading and trailing whitespaces
