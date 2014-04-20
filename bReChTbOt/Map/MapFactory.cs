@@ -248,8 +248,43 @@ namespace bReChTbOt.Map
 		/// </summary>
         public IEnumerable<ArmyPlacement> PlaceArmies()
         {
-			List<ArmyPlacement> placements = new List<ArmyPlacement>();
-			int startingArmies = ConfigFactory.GetInstance().GetStartingArmies();
+            List<ArmyPlacement> placements = new List<ArmyPlacement>();
+            int startingArmies = ConfigFactory.GetInstance().GetStartingArmies();
+
+            /* If we start on 3 super regions with an opponent as neighbour on every region we need to change some tactics:
+             *  - Don't attack until round 4
+             *  - Place armies on all 3 super regions to avoid loss of one or more super regions
+             * */
+            if (ConfigFactory.GetInstance().GetRoundNumber() == 1)
+            {
+                var myTotalSuperRegions =
+                    Regions
+                    .Where(r => r.Player != null && r.Player.PlayerType == PlayerType.Me)
+                    .GroupBy(r => GetSuperRegionForRegion(r).ID);
+
+                int opponentTotalSuperRegions =
+                    Regions
+                    .Where(r => r.Player != null && r.Player.PlayerType == PlayerType.Opponent)
+                    .GroupBy(r => GetSuperRegionForRegion(r).ID)
+                    .Count();
+
+                if (myTotalSuperRegions.Count() == 3 && opponentTotalSuperRegions == 3)
+                {
+                    ConfigFactory.GetInstance().SetStartRoundNumber(4);
+                    placements.Add(new ArmyPlacement() { Armies = 2, Region = Regions.Where(r => GetSuperRegionForRegion(r).ID == myTotalSuperRegions.First().Key).First()});
+                    placements.Add(new ArmyPlacement() { Armies = 2, Region = Regions.Where(r => GetSuperRegionForRegion(r).ID == myTotalSuperRegions.Skip(1).First().Key).First() });
+                    placements.Add(new ArmyPlacement() { Armies = 1, Region = Regions.Where(r => GetSuperRegionForRegion(r).ID == myTotalSuperRegions.Skip(2).First().Key).First() });
+
+                    UpdateRegions(placements);
+                    return placements;
+                }
+                else
+                {
+                    ConfigFactory.GetInstance().SetStartRoundNumber(2);
+                }
+            }
+
+
 
 			var primaryRegion = Regions
 				   .Where(region => region.NbrOfArmies < 100)
@@ -609,8 +644,8 @@ namespace bReChTbOt.Map
 				}
 			);
 
-			//Don't attack the enemy if we are in the first round, instead skip this move
-			if (ConfigFactory.GetInstance().GetRoundNumber() == 1)
+			//Don't attack the enemy if we are below the starting round, instead skip this move
+			if (ConfigFactory.GetInstance().GetRoundNumber() < ConfigFactory.GetInstance().GetStartRoundNumber())
 			{
 				transfers.ForEach(
 					transfer =>

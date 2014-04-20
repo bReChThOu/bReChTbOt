@@ -34,6 +34,7 @@ namespace bReChTbOt.Config
         private GameSettings GameSettings { get; set; }
 
 
+
 		/// <summary>
 		/// Prevents a default instance of the <see cref="ConfigFactory"/> class from being created.
 		/// </summary>
@@ -118,6 +119,16 @@ namespace bReChTbOt.Config
 		{
 			return GameSettings.RoundNumber;
 		}
+
+        public void SetStartRoundNumber(int round)
+        {
+            GameSettings.StartRoundNumber = round;
+        }
+
+        public int GetStartRoundNumber()
+        {
+            return GameSettings.StartRoundNumber;
+        }
 
     }
 }

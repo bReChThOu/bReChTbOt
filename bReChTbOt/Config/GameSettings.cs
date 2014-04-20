@@ -22,5 +22,13 @@ namespace bReChTbOt.Config
 		/// The round number
 		/// </value>
 		public int RoundNumber { get; set; }
+
+        /// <summary>
+        /// Gets or sets the start round number.
+        /// </summary>
+        /// <value>
+        /// The start round number
+        /// </value>
+        public int StartRoundNumber { get; set; }
     }
 }
