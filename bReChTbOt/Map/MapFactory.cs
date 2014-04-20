@@ -271,9 +271,9 @@ namespace bReChTbOt.Map
                 if (myTotalSuperRegions.Count() == 3 && opponentTotalSuperRegions == 3)
                 {
                     ConfigFactory.GetInstance().SetStartRoundNumber(4);
-                    placements.Add(new ArmyPlacement() { Armies = 2, Region = Regions.Where(r => GetSuperRegionForRegion(r).ID == myTotalSuperRegions.First().Key).First()});
-                    placements.Add(new ArmyPlacement() { Armies = 2, Region = Regions.Where(r => GetSuperRegionForRegion(r).ID == myTotalSuperRegions.Skip(1).First().Key).First() });
-                    placements.Add(new ArmyPlacement() { Armies = 1, Region = Regions.Where(r => GetSuperRegionForRegion(r).ID == myTotalSuperRegions.Skip(2).First().Key).First() });
+                    placements.Add(new ArmyPlacement() { Armies = 2, Region = Regions.Where(r => r.Player != null && r.Player.PlayerType == PlayerType.Me).Where(r => GetSuperRegionForRegion(r).ID == myTotalSuperRegions.First().Key).First()});
+                    placements.Add(new ArmyPlacement() { Armies = 2, Region = Regions.Where(r => r.Player != null && r.Player.PlayerType == PlayerType.Me).Where(r => GetSuperRegionForRegion(r).ID == myTotalSuperRegions.Skip(1).First().Key).First() });
+                    placements.Add(new ArmyPlacement() { Armies = 1, Region = Regions.Where(r => r.Player != null && r.Player.PlayerType == PlayerType.Me).Where(r => GetSuperRegionForRegion(r).ID == myTotalSuperRegions.Skip(2).First().Key).First() });
 
                     UpdateRegions(placements);
                     return placements;
