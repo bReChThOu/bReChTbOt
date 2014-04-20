@@ -361,13 +361,14 @@ namespace bReChTbOt.Map
 						{
 							Region targetRegion = null, sourceRegion = null;
 
-							targetRegion = superregion
-								.ChildRegions
-								.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Neutral)
-								.OrderByDescending(region =>
-									FlattenIEnumerable(region.Neighbours.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me).Select(reg => reg.NbrOfArmies))
-								)
-								.FirstOrDefault();
+                            var targetRegions = superregion
+                                .ChildRegions
+                                .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Neutral)
+                                .OrderByDescending(region =>
+                                    region.Neighbours.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me).Select(reg => reg.NbrOfArmies).Sum()
+                                );
+
+							targetRegion = targetRegions.FirstOrDefault();
 
 							/* No neutral armies found, that should mean we own the continent.
 							 * Let's explore the world and go to a new super region
@@ -378,7 +379,7 @@ namespace bReChTbOt.Map
 									.InvasionPaths
 									.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Neutral)
 									.OrderByDescending(region =>
-										FlattenIEnumerable(region.Neighbours.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me).Select(reg => reg.NbrOfArmies))
+										region.Neighbours.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me).Select(reg => reg.NbrOfArmies).Sum()
 
 									)
 									.FirstOrDefault();
@@ -390,6 +391,8 @@ namespace bReChTbOt.Map
 									.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me && region.NbrOfArmies > 5)
 									.OrderByDescending(region => region.NbrOfArmies)
 									.FirstOrDefault();
+
+                                    transferDone = AddCurrentPairToTransferList(sourceRegion, targetRegion, transfers);
 								}
 								else
 								{
@@ -397,14 +400,12 @@ namespace bReChTbOt.Map
 									.InvasionPaths
 									.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Opponent)
 									.OrderByDescending(region =>
-										FlattenIEnumerable(
 											region.Neighbours
 												.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me)
 												.Where(neighbor => neighbor.NbrOfArmies > 5)
 												.Where(neighbor => neighbor.NbrOfArmies > region.NbrOfArmies * 2)
-												.Select(reg => reg.NbrOfArmies))
+												.Select(reg => reg.NbrOfArmies).Sum()
 									)
-
 									.FirstOrDefault();
 
 									if (targetRegion != null)
@@ -414,6 +415,8 @@ namespace bReChTbOt.Map
 										.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me && region.NbrOfArmies > 5)
 										.OrderByDescending(region => region.NbrOfArmies)
 										.FirstOrDefault();
+
+                                        transferDone = AddCurrentPairToTransferList(sourceRegion, targetRegion, transfers);
 									}
 								}
 							}
@@ -421,25 +424,20 @@ namespace bReChTbOt.Map
 
 							else
 							{
-								sourceRegion = targetRegion
-								.Neighbours
-								.Where(region => GetSuperRegionForRegion(region) == superregion)
-								.Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me && region.NbrOfArmies > 5)
-								.OrderByDescending(region => region.NbrOfArmies)
-								.FirstOrDefault();
-							}
+                                //When we seem to be alone on this superregion, we'll want to make more than 1 move
+                                foreach(var cTargetRegion in targetRegions)
+                                {
+                                    sourceRegion = cTargetRegion
+                                    .Neighbours
+                                    .Where(region => GetSuperRegionForRegion(region) == superregion)
+                                    .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me && region.NbrOfArmies > 5)
+                                    .Where(region => transfers.Count(t => t.SourceRegion.ID == region.ID) == 0)
+                                    .OrderByDescending(region => region.NbrOfArmies)
+                                    .FirstOrDefault();
 
-							
-							if (sourceRegion != null && targetRegion != null)
-							{
-								if (sourceRegion.NbrOfArmies > 5)
-								{
-                                    ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = GetRequiredArmies(sourceRegion, targetRegion) };
-									transfers.Add(transfer);
-									transferDone = true;
-								}
+                                    transferDone = AddCurrentPairToTransferList(sourceRegion, cTargetRegion, transfers);
+                                }
 							}
-
 						}
 
 						/*
@@ -507,15 +505,7 @@ namespace bReChTbOt.Map
                                     }
                                 }
 
-                                if (sourceRegion != null && targetRegion != null)
-                                {
-                                    if (sourceRegion.NbrOfArmies > 5)
-                                    {
-                                        ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = GetRequiredArmies(sourceRegion, targetRegion) };
-                                        transfers.Add(transfer);
-										transferDone = true;
-                                    }
-                                }
+                                transferDone = AddCurrentPairToTransferList(sourceRegion, targetRegion, transfers);
                             }
 						}
 
@@ -580,50 +570,40 @@ namespace bReChTbOt.Map
 								}
 							}
 
-							if (sourceRegion != null && targetRegion != null)
-							{
-								if (sourceRegion.NbrOfArmies > 5)
-								{
-                                    ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = GetRequiredArmies(sourceRegion, targetRegion) };
-									transfers.Add(transfer);
-									transferDone = true;
-								}
-							}
+                            transferDone = AddCurrentPairToTransferList(sourceRegion, targetRegion, transfers);
 						}
 						/*
-						 * No moves or transfers made yet.
 						 * Let's see if we can move some troops away from the inland where they can't do anything
 						 * besides being stuck
 						 * */
-						if (!transferDone)
+						var stuckArmies = superregion
+                                            .ChildRegions
+                                            .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+                                            .Where(region => transfers.Count(t => t.SourceRegion.ID == region.ID) == 0)
+                                            .Where(region => transfers.Count(t => t.TargetRegion.ID == region.ID) == 0)
+                                            .Where(region => region.NbrOfArmies > 1 && region.Neighbours.All(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me));
+						if (stuckArmies.Count() > 0)
 						{
-							var stuckArmies = superregion.ChildRegions.Where(region => region.NbrOfArmies > 1 && region.Neighbours.All(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me));
-							if (stuckArmies.Count() > 0)
-							{
-								var stuckArmie = stuckArmies.First();
-								//Let's see if there are neighbors that have foreign neighbors (neutral/opponent)
-								var firstDegree = stuckArmie.Neighbours.Where(neighbor => neighbor.Neighbours.Any(neighborneighbor => neighborneighbor.Player != null && neighborneighbor.Player.PlayerType != PlayerType.Me));
-								if (firstDegree.Count() > 0)
-								{
-									var freeway = firstDegree.First();
-									ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = stuckArmie, TargetRegion = freeway, Armies = GetRequiredArmies(stuckArmie, freeway) };
-									transfers.Add(transfer);
-								}
-								//Nope, let's try second degree
-								else
-								{
-									var secondDegree = stuckArmie.Neighbours
-										.Where(neighbor => neighbor.Neighbours
-										.Any(neighborneighbor => neighborneighbor.Neighbours.Any(neighborneighborneighbor => neighborneighborneighbor.Player != null && neighborneighborneighbor.Player.PlayerType != PlayerType.Me)));
-									if (secondDegree.Count() > 0)
-									{
-										var freeway = secondDegree.First();
-										ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = stuckArmie, TargetRegion = freeway, Armies = GetRequiredArmies(stuckArmie, freeway) };
-										transfers.Add(transfer);
-									}
-								}
+                            foreach (var stuckArmie in stuckArmies)
+                            {
+                                if (transfers.Count(t => t.TargetRegion.ID == stuckArmie.ID) > 0)
+                                {
+                                    continue;
+                                }
 
-							}
+                                //Basic path finding to move away
+                                for (int degree = 1; degree < 6; degree++)
+                                {
+                                    var escapeRoutes = GetNthDegreeNeighbours(stuckArmie, degree);
+                                    if (escapeRoutes.Count() > 0)
+                                    {
+                                        var freeway = escapeRoutes.First();
+                                        ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = stuckArmie, TargetRegion = freeway, Armies = GetRequiredArmies(stuckArmie, freeway) };
+                                        transfers.Add(transfer);
+                                        break;
+                                    }
+                                }
+                            }
 						}
 					}
 				}
@@ -647,6 +627,20 @@ namespace bReChTbOt.Map
 			return transfers;
 		}
 
+        private bool AddCurrentPairToTransferList(Region sourceRegion, Region targetRegion, List<ArmyTransfer> transfers)
+        {
+            if (sourceRegion != null && targetRegion != null)
+            {
+                if (sourceRegion.NbrOfArmies > 5)
+                {
+                    ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = GetRequiredArmies(sourceRegion, targetRegion) };
+                    transfers.Add(transfer);
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private int GetRequiredArmies(Region sourceRegion, Region targetRegion)
         {
             int source = sourceRegion.NbrOfArmies;
@@ -654,11 +648,43 @@ namespace bReChTbOt.Map
             return sourceRegion.NbrOfArmies - 1;
         }
 
-		private int FlattenIEnumerable(IEnumerable<int> ienumerable)
+		private IEnumerable<Region> GetNthDegreeNeighbours(Region stuckArmie, int degree)
 		{
-			int sum = 0;
-			ienumerable.ToList().ForEach(item => sum += item);
-			return sum;
+			switch (degree)
+			{ 
+				default:
+					return Enumerable.Empty<Region>();
+				case 1:
+					return stuckArmie.Neighbours
+							.Where(n => n.Neighbours
+							.Any(nn => nn.Player != null && nn.Player.PlayerType != PlayerType.Me));
+				case 2:
+					return stuckArmie.Neighbours
+						    .Where(n => n.Neighbours
+							.Any(nn => nn.Neighbours
+							.Any(nnn => nnn.Player != null && nnn.Player.PlayerType != PlayerType.Me)));
+				case 3:
+					return stuckArmie.Neighbours
+							.Where(n => n.Neighbours
+							.Any(nn => nn.Neighbours
+							.Any(nnn => nnn.Neighbours
+							.Any(nnnn => nnnn.Player != null && nnnn.Player.PlayerType != PlayerType.Me))));
+				case 4:
+					return stuckArmie.Neighbours
+							.Where(n => n.Neighbours
+							.Any(nn => nn.Neighbours
+							.Any(nnn => nnn.Neighbours
+							.Any(nnnn => nnnn.Neighbours
+							.Any(nnnnn => nnnnn.Player != null && nnnnn.Player.PlayerType != PlayerType.Me)))));
+				case 5:
+					return stuckArmie.Neighbours
+							.Where(n => n.Neighbours
+							.Any(nn => nn.Neighbours
+							.Any(nnn => nnn.Neighbours
+							.Any(nnnn => nnnn.Neighbours
+							.Any(nnnnn => nnnnn.Neighbours
+							.Any(nnnnnn => nnnnnn.Player != null && nnnnnn.Player.PlayerType != PlayerType.Me))))));
+			}
 		}
     }
 }
