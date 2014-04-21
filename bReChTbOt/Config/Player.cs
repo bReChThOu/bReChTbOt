@@ -26,5 +26,10 @@ namespace bReChTbOt.Config
         /// The type of the player.
         /// </value>
         public PlayerType PlayerType { get; set; }
+
+        public override string ToString()
+        {
+            return PlayerType.ToString();
+        }
     }
 }

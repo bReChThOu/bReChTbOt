@@ -79,6 +79,11 @@ namespace bReChTbOt.Map
             Priority = (int) 1000 / ChildRegions.Count;
         }
 
+        public override string ToString()
+        {
+            return string.Format("ID: {0} - ChildRegions: {1}", ID, ChildRegions.Count);
+        }
+
         
     }
 }
