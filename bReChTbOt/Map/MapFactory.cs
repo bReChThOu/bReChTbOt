@@ -298,8 +298,23 @@ namespace bReChTbOt.Map
 
 			if (startingArmies == 5)
 			{
-				var armyplacement = new ArmyPlacement() { Armies = 5, Region = primaryRegion };
+                var secundaryRegion = Regions
+                    .Where(region => GetSuperRegionForRegion(region) != GetSuperRegionForRegion(primaryRegion))
+                   .Where(region => region.NbrOfArmies < 100)
+                   .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+                   .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Opponent))
+                   .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral))
+                   .ThenBy(region => (GetSuperRegionForRegion(region).ChildRegions.Count(child => child.Player.PlayerType == PlayerType.Me)))
+                   .ThenBy(region => region.NbrOfArmies)
+                   .FirstOrDefault();
+				var armyplacement = new ArmyPlacement() { Armies = 4, Region = primaryRegion };
 				placements.Add(armyplacement);
+                if (secundaryRegion == null)
+                {
+                    secundaryRegion = primaryRegion;
+                }
+                armyplacement = new ArmyPlacement() { Armies = startingArmies - 4, Region = secundaryRegion };
+                placements.Add(armyplacement);
 			}
 			if (startingArmies >= 7 && startingArmies <= 9)
 			{
