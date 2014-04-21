@@ -1,5 +1,5 @@
 ﻿// <copyright file="CommandParser.cs">
-//		Copyright (c) 2013 All Rights Reserved
+//        Copyright (c) 2013 All Rights Reserved
 // </copyright>
 // <author>Brecht Houben</author>
 // <date>10/03/2014</date>
@@ -53,11 +53,11 @@ namespace bReChTbOt.Core
                             switch(subcommand)
                             {
                                 case "place_armies":
-									CommandBuilder.OutputArmyPlacements(MapFactory.GetInstance().PlaceArmies());
+                                    CommandBuilder.OutputArmyPlacements(MapFactory.GetInstance().PlaceArmies());
                                     break;
-								case "attack/transfer":
-									CommandBuilder.OutputArmyTransfers(MapFactory.GetInstance().TransferArmies());
-									break;
+                                case "attack/transfer":
+                                    CommandBuilder.OutputArmyTransfers(MapFactory.GetInstance().TransferArmies());
+                                    break;
                             }
                             break;
                         case "setup_map":
@@ -98,7 +98,7 @@ namespace bReChTbOt.Core
                             CommandBuilder.OutputStartingRegions(MapFactory.GetInstance().PickFavoriteStartingRegions());
                             break;
                         case "update_map":
-							ConfigFactory.GetInstance().SetRoundNumber(ConfigFactory.GetInstance().GetRoundNumber() + 1);
+                            ConfigFactory.GetInstance().SetRoundNumber(ConfigFactory.GetInstance().GetRoundNumber() + 1);
                              MapFactory.GetInstance().ClearRegions();
                             for (int i = 1; i < commandargs.Length; i++)
                             {

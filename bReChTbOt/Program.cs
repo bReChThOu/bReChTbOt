@@ -6,14 +6,14 @@ namespace bReChTbOt
     {
         static void Main(string[] args)
         {
-			try
-			{
-				new Bot().Run();
-			}
-			catch
-			{
+            try
+            {
+                new Bot().Run();
+            }
+            catch
+            {
 
-			}
+            }
         }
     }
 }
