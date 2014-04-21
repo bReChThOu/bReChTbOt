@@ -635,9 +635,37 @@ namespace bReChTbOt.Map
 										.OrderByDescending(region => region.NbrOfArmies)
 										.FirstOrDefault();
 								}
+                                else
+                                {
+                                    //We can't defend a region, probably because we don't have armies nearby, so let's conquer some regions instead
+                                    var targetRegions = superregion
+                                    .ChildRegions
+                                    .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Neutral)
+                                    .OrderByDescending(region =>
+                                        region.Neighbours.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me).Select(reg => reg.NbrOfArmies).Sum()
+                                    );
+                                    foreach (var cTargetRegion in targetRegions)
+                                    {
+                                        sourceRegion = cTargetRegion
+                                        .Neighbours
+                                        .Where(region => GetSuperRegionForRegion(region) == superregion)
+                                        .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me && region.NbrOfArmies > 5)
+                                        .Where(region => transfers.Count(t => t.SourceRegion.ID == region.ID) == 0)
+                                        .OrderByDescending(region => region.NbrOfArmies)
+                                        .FirstOrDefault();
+
+                                        if (sourceRegion != null)
+                                        {
+                                            transferDone = AddCurrentPairToTransferList(sourceRegion, cTargetRegion, transfers);
+                                        }
+                                    }
+                                }
 							}
 
-                            transferDone = AddCurrentPairToTransferList(sourceRegion, targetRegion, transfers);
+                            if (!transferDone)
+                            {
+                                transferDone = AddCurrentPairToTransferList(sourceRegion, targetRegion, transfers);
+                            }
 						}
 						/*
 						 * Let's see if we can move some troops away from the inland where they can't do anything
