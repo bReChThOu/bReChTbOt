@@ -293,7 +293,7 @@ namespace bReChTbOt.Map
                    .ThenBy(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) == GetSuperRegionForRegion(region)))
                    .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) != GetSuperRegionForRegion(region)))
                    .ThenBy(region => (GetSuperRegionForRegion(region).ChildRegions.Count(child => child.Player.PlayerType == PlayerType.Me)))
-                   .ThenBy(region => region.NbrOfArmies)
+                   .ThenByDescending(region => region.NbrOfArmies)
                    .FirstOrDefault();
 
             if (startingArmies == 5)
