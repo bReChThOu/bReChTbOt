@@ -134,15 +134,15 @@ namespace bReChTbOt.Config
         {
             if (GetRoundNumber() > 78)
             {
-                return 100;
+                return 300;
             }
             if (GetRoundNumber() > 65)
             {
-                return 150;
+                return 400;
             }
             if (GetRoundNumber() > 50)
             {
-                return 200;
+                return 500;
             }
             return 500;
         }
