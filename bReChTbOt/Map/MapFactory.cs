@@ -345,7 +345,7 @@ namespace bReChTbOt.Map
                    .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Opponent))
                    .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral))
                    .ThenByDescending(region => (GetSuperRegionForRegion(region).ChildRegions.Count(child => child.Player.PlayerType == PlayerType.Me)))
-                   .ThenBy(region => region.NbrOfArmies)
+                   .ThenByDescending(region => region.NbrOfArmies)
                    .FirstOrDefault();
 
                 var armyplacement = new ArmyPlacement() { Armies = 9, Region = primaryRegion };
@@ -548,6 +548,18 @@ namespace bReChTbOt.Map
                                 .Where(invasionpath => invasionpath.Player != null && invasionpath.Player.PlayerType == PlayerType.Opponent)
                                 .OrderByDescending(region => region.NbrOfArmies)
                                 .FirstOrDefault();
+                            /*
+                             * We can't attack the biggest enemy region. Let's try another
+                             * Every conquered region means the opponent might loose his super region bonus!
+                             * */
+                            if (invadingBorderTerritory == null)
+                            {
+                                invadingBorderTerritory = superregion
+                                .InvasionPaths
+                                .Where(invasionpath => invasionpath.Player != null && invasionpath.Player.PlayerType == PlayerType.Opponent)
+                                .OrderBy(region => region.NbrOfArmies)
+                                .FirstOrDefault();
+                            }
 
                             if (invadingBorderTerritory != null)
                             {
