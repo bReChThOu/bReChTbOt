@@ -290,8 +290,8 @@ namespace bReChTbOt.Map
                    .Where(region => region.NbrOfArmies < 100)
                    .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
                    .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Opponent))
-                   .ThenBy(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) == GetSuperRegionForRegion(region)))
-                   .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) != GetSuperRegionForRegion(region)))
+                   .ThenBy(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) == GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
+                   .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) != GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
                    .ThenBy(region => (GetSuperRegionForRegion(region).ChildRegions.Count(child => child.Player.PlayerType == PlayerType.Me)))
                    .ThenByDescending(region => region.NbrOfArmies)
                    .FirstOrDefault();
@@ -505,6 +505,34 @@ namespace bReChTbOt.Map
                                     transferDone = AddCurrentPairToTransferList(sourceRegion, cTargetRegion, transfers);
                                 }
                             }
+                            /*
+                             * Its not good to leave 3 armies on 1 region and 4 armies on another region.
+                             * We have to move armies to the largest region to conquer the super region faster.
+                             * For now, only do this when there are no enemies spotted
+                             * */
+                            var largestRegion = superregion
+                                .ChildRegions
+                                .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+                                .Where(region => region.NbrOfArmies > 1)
+                                .OrderByDescending(region => region.NbrOfArmies)
+                                .FirstOrDefault();
+                            if (largestRegion != null)
+                            {
+                                var qualifiedArmies = superregion
+                                    .ChildRegions
+                                    .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
+                                    .Where(region => region.NbrOfArmies > 1)
+                                    .Where(region => largestRegion.Neighbours.Contains(largestRegion))
+                                    .Where(region => !transfers.Any(t => t.SourceRegion.ID == region.ID));
+                                if (qualifiedArmies.Any())
+                                {
+                                    foreach (var qualifiedArmy in qualifiedArmies)
+                                    {
+                                        transferDone = AddCurrentPairToTransferList(qualifiedArmy, largestRegion, transfers);
+                                    }
+                                }
+                            }
+
                         }
 
                         /*
