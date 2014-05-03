@@ -610,32 +610,28 @@ namespace bReChTbOt.Map
                                             .OrderByDescending(region => region.NbrOfArmies)
                                             .FirstOrDefault();
                                     }
-                                    else
-                                    {
-                                        var targetRegions = superregion
+                                }
+                                transferDone = AddCurrentPairToTransferList(sourceRegion, targetRegion, transfers);
+                                var targetRegions = superregion
                                             .ChildRegions
                                             .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Neutral)
                                             .OrderByDescending(region =>
                                                 region.Neighbours.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me).Select(reg => reg.NbrOfArmies).Sum()
                                             );
 
-                                        //When we seem to be alone on this superregion, we'll want to make more than 1 move
-                                        foreach (var cTargetRegion in targetRegions)
-                                        {
-                                            sourceRegion = cTargetRegion
-                                            .Neighbours
-                                            .Where(region => GetSuperRegionForRegion(region) == superregion)
-                                            .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me && region.NbrOfArmies > 5)
-                                            .Where(region => transfers.Count(t => t.SourceRegion.ID == region.ID) == 0)
-                                            .OrderByDescending(region => region.NbrOfArmies)
-                                            .FirstOrDefault();
+                                //When we seem to be alone on this superregion, we'll want to make more than 1 move
+                                foreach (var cTargetRegion in targetRegions)
+                                {
+                                    sourceRegion = cTargetRegion
+                                    .Neighbours
+                                    .Where(region => GetSuperRegionForRegion(region) == superregion)
+                                    .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me && region.NbrOfArmies > 5)
+                                    .Where(region => transfers.Count(t => t.SourceRegion.ID == region.ID) == 0)
+                                    .OrderByDescending(region => region.NbrOfArmies)
+                                    .FirstOrDefault();
 
-                                            transferDone = AddCurrentPairToTransferList(sourceRegion, cTargetRegion, transfers);
-                                        }
-                                    }
+                                    transferDone = AddCurrentPairToTransferList(sourceRegion, cTargetRegion, transfers);
                                 }
-
-                                transferDone = AddCurrentPairToTransferList(sourceRegion, targetRegion, transfers);
                             }
                         }
 
