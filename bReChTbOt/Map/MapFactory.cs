@@ -522,7 +522,7 @@ namespace bReChTbOt.Map
                                     .ChildRegions
                                     .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
                                     .Where(region => region.NbrOfArmies > 1)
-                                    .Where(region => largestRegion.Neighbours.Contains(largestRegion))
+                                    .Where(region => largestRegion.Neighbours.Contains(region))
                                     .Where(region => !transfers.Any(t => t.SourceRegion.ID == region.ID));
                                 if (qualifiedArmies.Any())
                                 {
