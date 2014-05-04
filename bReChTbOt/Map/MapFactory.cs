@@ -429,8 +429,8 @@ namespace bReChTbOt.Map
                             var targetRegions = superregion
                                 .ChildRegions
                                 .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Neutral)
-                                .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) == GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
-                                .ThenBy(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) != GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
+                                .OrderBy(region => region.Neighbours.Count(neighbor => GetSuperRegionForRegion(neighbor) != GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
+                                .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) == GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
                                 .ThenByDescending(region =>
                                     region.Neighbours.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me).Select(reg => reg.NbrOfArmies).Sum()
                                 );
@@ -443,13 +443,12 @@ namespace bReChTbOt.Map
                             if (targetRegion == null)
                             {
                                 targetRegions = superregion
-                                .ChildRegions
-                                .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Neutral)
-                                .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) == GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
-                                .ThenBy(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) != GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
-                                .ThenByDescending(region =>
-                                    region.Neighbours.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me).Select(reg => reg.NbrOfArmies).Sum()
-                                );
+                                   .InvasionPaths
+                                   .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Neutral)
+                                   .OrderByDescending(region =>
+                                       region.Neighbours.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me).Select(reg => reg.NbrOfArmies).Sum()
+
+                                   );
                                 targetRegion = targetRegions.FirstOrDefault();
 
                                 if (targetRegion != null)
@@ -646,8 +645,8 @@ namespace bReChTbOt.Map
                                 var targetRegions = superregion
                                 .ChildRegions
                                 .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Neutral)
-                                .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) == GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
-                                .ThenBy(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) != GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
+                                .OrderBy(region => region.Neighbours.Count(neighbor => GetSuperRegionForRegion(neighbor) != GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
+                                .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) == GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
                                 .ThenByDescending(region =>
                                     region.Neighbours.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me).Select(reg => reg.NbrOfArmies).Sum()
                                 );
@@ -736,13 +735,13 @@ namespace bReChTbOt.Map
                                     {
                                         //We can't defend a region, probably because we don't have armies nearby, so let's conquer some regions instead
                                         var targetRegions = superregion
-                                        .ChildRegions
-                                        .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Neutral)
-                                        .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) == GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
-                                        .ThenBy(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) != GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
-                                        .ThenByDescending(region =>
-                                            region.Neighbours.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me).Select(reg => reg.NbrOfArmies).Sum()
-                                        );
+                                            .ChildRegions
+                                            .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Neutral)
+                                            .OrderBy(region => region.Neighbours.Count(neighbor => GetSuperRegionForRegion(neighbor) != GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
+                                            .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) == GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
+                                            .ThenByDescending(region =>
+                                                region.Neighbours.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me).Select(reg => reg.NbrOfArmies).Sum()
+                                            );
                                         foreach (var cTargetRegion in targetRegions)
                                         {
                                             sourceRegion = cTargetRegion
