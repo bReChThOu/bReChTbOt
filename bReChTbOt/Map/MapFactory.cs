@@ -429,7 +429,9 @@ namespace bReChTbOt.Map
                             var targetRegions = superregion
                                 .ChildRegions
                                 .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Neutral)
-                                .OrderByDescending(region =>
+                                .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) == GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
+                                .ThenBy(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) != GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
+                                .ThenByDescending(region =>
                                     region.Neighbours.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me).Select(reg => reg.NbrOfArmies).Sum()
                                 );
 
@@ -441,12 +443,13 @@ namespace bReChTbOt.Map
                             if (targetRegion == null)
                             {
                                 targetRegions = superregion
-                                    .InvasionPaths
-                                    .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Neutral)
-                                    .OrderByDescending(region =>
-                                        region.Neighbours.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me).Select(reg => reg.NbrOfArmies).Sum()
-
-                                    );
+                                .ChildRegions
+                                .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Neutral)
+                                .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) == GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
+                                .ThenBy(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) != GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
+                                .ThenByDescending(region =>
+                                    region.Neighbours.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me).Select(reg => reg.NbrOfArmies).Sum()
+                                );
                                 targetRegion = targetRegions.FirstOrDefault();
 
                                 if (targetRegion != null)
@@ -641,11 +644,13 @@ namespace bReChTbOt.Map
                                 }
                                 transferDone = AddCurrentPairToTransferList(sourceRegion, targetRegion, transfers);
                                 var targetRegions = superregion
-                                            .ChildRegions
-                                            .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Neutral)
-                                            .OrderByDescending(region =>
-                                                region.Neighbours.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me).Select(reg => reg.NbrOfArmies).Sum()
-                                            );
+                                .ChildRegions
+                                .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Neutral)
+                                .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) == GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
+                                .ThenBy(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) != GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
+                                .ThenByDescending(region =>
+                                    region.Neighbours.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me).Select(reg => reg.NbrOfArmies).Sum()
+                                );
 
                                 //When we seem to be alone on this superregion, we'll want to make more than 1 move
                                 foreach (var cTargetRegion in targetRegions)
@@ -733,7 +738,9 @@ namespace bReChTbOt.Map
                                         var targetRegions = superregion
                                         .ChildRegions
                                         .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Neutral)
-                                        .OrderByDescending(region =>
+                                        .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) == GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
+                                        .ThenBy(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) != GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
+                                        .ThenByDescending(region =>
                                             region.Neighbours.Where(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Me).Select(reg => reg.NbrOfArmies).Sum()
                                         );
                                         foreach (var cTargetRegion in targetRegions)
@@ -817,7 +824,11 @@ namespace bReChTbOt.Map
 
         private bool AddCurrentPairToTransferList(Region sourceRegion, Region targetRegion, List<ArmyTransfer> transfers)
         {
-            return AddCurrentPairToTransferList(sourceRegion, targetRegion, transfers, GetRequiredArmies(sourceRegion, targetRegion));
+            if (sourceRegion != null && targetRegion != null)
+            {
+                return AddCurrentPairToTransferList(sourceRegion, targetRegion, transfers, GetRequiredArmies(sourceRegion, targetRegion));
+            }
+            return false;
         }
 
         private bool AddCurrentPairToTransferList(Region sourceRegion, Region targetRegion, List<ArmyTransfer> transfers, int nbrOfArmies)
@@ -837,8 +848,6 @@ namespace bReChTbOt.Map
 
         private int GetRequiredArmies(Region sourceRegion, Region targetRegion)
         {
-            int source = sourceRegion.NbrOfArmies;
-            int target = targetRegion.NbrOfArmies;
             return sourceRegion.NbrOfArmies - 1;
         }
 
