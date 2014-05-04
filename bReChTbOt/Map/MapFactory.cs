@@ -541,6 +541,7 @@ namespace bReChTbOt.Map
                                 .ChildRegions
                                 .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
                                 .Where(region => region.NbrOfArmies > 1)
+                                .Where(region => !region.Neighbours.All(n => n.Player != null && n.Player.PlayerType == PlayerType.Me))
                                 .OrderByDescending(region => region.NbrOfArmies)
                                 .FirstOrDefault();
                             if (largestRegion != null)
@@ -816,16 +817,7 @@ namespace bReChTbOt.Map
 
         private bool AddCurrentPairToTransferList(Region sourceRegion, Region targetRegion, List<ArmyTransfer> transfers)
         {
-            if (sourceRegion != null && targetRegion != null)
-            {
-                if (sourceRegion.NbrOfArmies > 5 || (sourceRegion.Player.PlayerType == PlayerType.Me && targetRegion.Player.PlayerType == PlayerType.Me && sourceRegion.NbrOfArmies > 1))
-                {
-                    ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = GetRequiredArmies(sourceRegion, targetRegion) };
-                    transfers.Add(transfer);
-                    return true;
-                }
-            }
-            return false;
+            return AddCurrentPairToTransferList(sourceRegion, targetRegion, transfers, GetRequiredArmies(sourceRegion, targetRegion));
         }
 
         private bool AddCurrentPairToTransferList(Region sourceRegion, Region targetRegion, List<ArmyTransfer> transfers, int nbrOfArmies)
@@ -834,8 +826,9 @@ namespace bReChTbOt.Map
             {
                 if (sourceRegion.NbrOfArmies > 5 || (sourceRegion.Player.PlayerType == PlayerType.Me && targetRegion.Player.PlayerType == PlayerType.Me && sourceRegion.NbrOfArmies > 1))
                 {
-                    ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = 5 };
+                    ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = nbrOfArmies };
                     transfers.Add(transfer);
+                    UpdateRegion(sourceRegion.ID, ConfigFactory.GetInstance().GetMyBotName(), sourceRegion.NbrOfArmies - nbrOfArmies);
                     return true;
                 }
             }
