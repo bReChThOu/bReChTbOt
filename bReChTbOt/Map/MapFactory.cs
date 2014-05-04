@@ -291,7 +291,7 @@ namespace bReChTbOt.Map
                    .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
                    .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Opponent))
                    .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) == GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
-                   .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) != GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
+                   .ThenBy(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) != GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
                    .ThenBy(region => (GetSuperRegionForRegion(region).ChildRegions.Count(child => child.Player.PlayerType == PlayerType.Me)))
                    .ThenByDescending(region => region.NbrOfArmies)
                    .FirstOrDefault();
@@ -303,7 +303,8 @@ namespace bReChTbOt.Map
                    .Where(region => region.NbrOfArmies < 100)
                    .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
                    .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Opponent))
-                   .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral))
+                   .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) == GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
+                   .ThenBy(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) != GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
                    .ThenBy(region => (GetSuperRegionForRegion(region).ChildRegions.Count(child => child.Player.PlayerType == PlayerType.Me)))
                    .ThenByDescending(region => region.NbrOfArmies)
                    .FirstOrDefault();
@@ -323,7 +324,8 @@ namespace bReChTbOt.Map
                    .Where(region => region.NbrOfArmies < 100)
                    .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
                    .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Opponent))
-                   .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral))
+                   .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) == GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
+                   .ThenBy(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) != GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
                    .ThenBy(region => (GetSuperRegionForRegion(region).ChildRegions.Count(child => child.Player.PlayerType == PlayerType.Me)))
                    .ThenByDescending(region => region.NbrOfArmies)
                    .FirstOrDefault();
@@ -343,7 +345,8 @@ namespace bReChTbOt.Map
                    .Where(region => region.NbrOfArmies < 100)
                    .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
                    .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Opponent))
-                   .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral))
+                   .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) == GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
+                   .ThenBy(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) != GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
                    .ThenByDescending(region => (GetSuperRegionForRegion(region).ChildRegions.Count(child => child.Player.PlayerType == PlayerType.Me)))
                    .ThenByDescending(region => region.NbrOfArmies)
                    .FirstOrDefault();
@@ -364,8 +367,8 @@ namespace bReChTbOt.Map
                    .Where(region => region.NbrOfArmies < 100)
                    .Where(region => region.Player != null && region.Player.PlayerType == PlayerType.Me)
                    .OrderByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Opponent))
-                   .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(region) == GetSuperRegionForRegion(neighbor)))
-                   .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(region) != GetSuperRegionForRegion(neighbor)))
+                   .ThenByDescending(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) == GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
+                   .ThenBy(region => region.Neighbours.Count(neighbor => neighbor.Player != null && neighbor.Player.PlayerType == PlayerType.Neutral && GetSuperRegionForRegion(neighbor) != GetSuperRegionForRegion(region)) > 0 ? 1 : 0)
                    .ThenBy(region => (GetSuperRegionForRegion(region).ChildRegions.Count(child => child.Player.PlayerType == PlayerType.Me)))
                    .ThenByDescending(region => region.NbrOfArmies)
                    .FirstOrDefault();
@@ -492,8 +495,9 @@ namespace bReChTbOt.Map
                             else
                             {
                                 //When we seem to be alone on this superregion, we'll want to make more than 1 move
-                                foreach(var cTargetRegion in targetRegions)
+                                for(int i = 0; i < targetRegions.Count(); i++) 
                                 {
+                                    var cTargetRegion = targetRegions.ToArray()[i];
                                     sourceRegion = cTargetRegion
                                     .Neighbours
                                     .Where(region => GetSuperRegionForRegion(region) == superregion)
@@ -502,7 +506,30 @@ namespace bReChTbOt.Map
                                     .OrderByDescending(region => region.NbrOfArmies)
                                     .FirstOrDefault();
 
-                                    transferDone = AddCurrentPairToTransferList(sourceRegion, cTargetRegion, transfers);
+                                    if (sourceRegion != null)
+                                    {
+
+                                        //We can conquer multiple neutral regions with one army.
+                                        if (sourceRegion.NbrOfArmies > 10)
+                                        {
+                                            i--;
+                                            for (int n = sourceRegion.NbrOfArmies; n > 5 && i < targetRegions.Count() - 1; )
+                                            {
+                                                cTargetRegion = targetRegions.ToArray()[++i];
+                                                int nbrOfArmies = 5;
+                                                if (n < 10)
+                                                {
+                                                    nbrOfArmies = n - 1;
+                                                }
+                                                transferDone = AddCurrentPairToTransferList(sourceRegion, cTargetRegion, transfers, nbrOfArmies);
+                                                n = n - nbrOfArmies;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            transferDone = AddCurrentPairToTransferList(sourceRegion, cTargetRegion, transfers);
+                                        }
+                                    }
                                 }
                             }
                             /*
@@ -794,6 +821,20 @@ namespace bReChTbOt.Map
                 if (sourceRegion.NbrOfArmies > 5 || (sourceRegion.Player.PlayerType == PlayerType.Me && targetRegion.Player.PlayerType == PlayerType.Me && sourceRegion.NbrOfArmies > 1))
                 {
                     ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = GetRequiredArmies(sourceRegion, targetRegion) };
+                    transfers.Add(transfer);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool AddCurrentPairToTransferList(Region sourceRegion, Region targetRegion, List<ArmyTransfer> transfers, int nbrOfArmies)
+        {
+            if (sourceRegion != null && targetRegion != null)
+            {
+                if (sourceRegion.NbrOfArmies > 5 || (sourceRegion.Player.PlayerType == PlayerType.Me && targetRegion.Player.PlayerType == PlayerType.Me && sourceRegion.NbrOfArmies > 1))
+                {
+                    ArmyTransfer transfer = new ArmyTransfer() { SourceRegion = sourceRegion, TargetRegion = targetRegion, Armies = 5 };
                     transfers.Add(transfer);
                     return true;
                 }
